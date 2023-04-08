@@ -1,35 +1,35 @@
 'use client';
 
-import fetcher from '@libs/request/client/fetcher';
+import fetcher from '@libs/request/fetcher';
 import useSWR from 'swr';
 import { Category } from '@prisma/client';
-import { assetUploadItem, deleteVanillaItem, upsertVanillaItem } from '@libs/request/client/minecraft/item';
-import { MinecraftItemData } from '@definitions/minecraft';
+import { deleteItem } from '@libs/request/client/item';
+import { ReadableItemData } from '@definitions/minecraft';
 import { useRouter } from 'next/navigation';
 import BaseCreateItem, { SendData } from '@components/drawer/container/item/BaseCreateItem';
 
 type Props = {
     onClose: () => void;
     isCreating: boolean;
-    defaultValues?: Partial<MinecraftItemData>;
+    defaultValues?: Partial<ReadableItemData>;
 };
 
 export default function AdminCreateItem(props: Props) {
-    const { data } = useSWR<Category[]>('/api/minecraft/categories/lite', fetcher);
+    const { data } = useSWR<Category[]>('/api/categories/lite', fetcher);
     const router = useRouter();
 
     const sendData = async (data: SendData) => {
         const { name, minecraftId, asset, tags, categories } = data;
-        await assetUploadItem(minecraftId, asset);
+        /*        await assetUploadItem(minecraftId, asset);
         await upsertVanillaItem(!props.isCreating, name, minecraftId, tags, categories, props.defaultValues?.id).then(() => {
             router.refresh();
             props.onClose();
-        });
+        });*/
     };
 
     const handleDelete = async () => {
         if (props.defaultValues?.id) {
-            await deleteVanillaItem(props.defaultValues?.id).then(() => {
+            await deleteItem(props.defaultValues?.id).then(() => {
                 router.refresh();
                 props.onClose();
             });

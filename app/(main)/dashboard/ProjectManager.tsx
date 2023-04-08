@@ -1,21 +1,22 @@
 import React from 'react';
-import { redirect } from 'next/navigation';
-import { getProjectByUserId } from '@libs/request/server/project/get';
-import { ReadablePersonalProjectData } from '@definitions/project';
+import { notFound } from 'next/navigation';
 import CardContainer from '@main/dashboard/CardCotnainer';
-import { AsyncSessionProps } from '@definitions/next-auth';
+import prisma from '@libs/prisma';
+import UserDataRepository from '@repositories/UserData';
+import { getSession } from '@libs/session';
 
 const getData = async (id?: string) => {
-    if (!id) redirect('/');
-
-    const response = await getProjectByUserId(id);
-    if (!response.request.success) throw new Error('Failed to get data');
-    return response.data as ReadablePersonalProjectData[];
+    if (!id) notFound();
+    return await new UserDataRepository(prisma.userData).findProjectsByUserId(id);
 };
 
-export default async function ProjectManager(props: AsyncSessionProps) {
-    const session = await props.session;
+export default async function ProjectManager() {
+    const session = await getSession();
     const data = await getData(session?.id);
 
-    return <CardContainer data={data} />;
+    if (!session) {
+        notFound();
+    }
+
+    return <CardContainer data={data} session={session} />;
 }

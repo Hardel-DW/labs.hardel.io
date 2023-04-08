@@ -2,7 +2,7 @@
 import { Session } from 'next-auth';
 import { clx } from '@libs/utils';
 import Image from 'next/image';
-import Harion from '@images/harion.webp';
+import Harion from '@images/logo/harion.webp';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useRef, useState } from 'react';
@@ -40,28 +40,45 @@ export default function UserDropdown({ session }: Props) {
                     <div className="py-3 px-4 w-max">
                         <div className="flex items-center w-fit">
                             <div className="flex-shrink-0">
-                                <Image className="rounded-full" width={32} height={32} src={session?.user?.image ?? Harion} alt="user photo" />
+                                <Image
+                                    className="rounded-full"
+                                    width={32}
+                                    height={32}
+                                    src={session?.user?.image ?? Harion}
+                                    alt="user photo"
+                                />
                             </div>
                             <div className="pl-3">
                                 <span className="block text-sm text-white">{session.user.name}</span>
-                                <span className="block text-sm font-medium break-keep text-gray-500 truncate max-w-[12rem]">{session.user.email}</span>
+                                <span className="block text-sm font-medium break-keep text-gray-500 truncate max-w-[12rem]">
+                                    {session.user.email}
+                                </span>
                             </div>
                         </div>
                     </div>
                     <hr className={'my-1'} />
                     <ul className="py-1">
                         <li className={'w-11/12 mx-auto my-1'}>
-                            <Link href={'/'} className="block w-full text-start py-2 px-4 text-sm text-white hover:bg-secondary/20 hover:text-white  rounded">
+                            <Link
+                                href={'/'}
+                                className="block w-full text-start py-2 px-4 text-sm text-white hover:bg-secondary/20 hover:text-white  rounded"
+                            >
                                 Profile
                             </Link>
                         </li>
                         <li className={'w-11/12 mx-auto my-1'}>
-                            <Link href={'/'} className="block w-full text-start py-2 px-4 text-sm text-white hover:bg-secondary/20  hover:text-white rounded">
+                            <Link
+                                href={'/'}
+                                className="block w-full text-start py-2 px-4 text-sm text-white hover:bg-secondary/20  hover:text-white rounded"
+                            >
                                 Settings
                             </Link>
                         </li>
                         <li className={'w-11/12 mx-auto my-1'}>
-                            <button onClick={() => signOut()} className="block w-full text-start py-2 px-4 text-sm text-white hover:bg-secondary/20 hover:text-white rounded">
+                            <button
+                                onClick={() => signOut()}
+                                className="block w-full text-start py-2 px-4 text-sm text-white hover:bg-secondary/20 hover:text-white rounded"
+                            >
                                 Sign out
                             </button>
                         </li>
@@ -69,7 +86,10 @@ export default function UserDropdown({ session }: Props) {
                             <>
                                 <hr className={'my-1'} />
                                 <li className={'w-11/12 mx-auto my-1'}>
-                                    <Link href={'/admin/dashboard'} className="block w-full text-start py-2 px-4 text-sm text-white hover:bg-secondary/20 hover:text-white rounded">
+                                    <Link
+                                        href={'/admin/dashboard'}
+                                        className="block w-full text-start py-2 px-4 text-sm text-white hover:bg-secondary/20 hover:text-white rounded"
+                                    >
                                         Dashboard
                                     </Link>
                                 </li>

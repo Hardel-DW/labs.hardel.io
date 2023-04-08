@@ -1,25 +1,26 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { ReadablePersonalProjectData } from '@definitions/project';
-import fetcher from '@libs/request/client/fetcher';
+import { ReadableProjectData } from '@definitions/project';
+import fetcher from '@libs/request/fetcher';
 import { useMemo, useState } from 'react';
-import { removeSpacesAndSpecialCharacters } from '@libs/utils';
+import { removeSpecialCharacters } from '@libs/utils';
 import { deleteProject, transferProjectOwnership } from '@libs/request/client/project';
 import FormInput from '@components/form/input';
 import WhiteButton from '@components/form/Button/White';
 import RedButton from '@components/form/Button/Red';
+import { Session } from 'next-auth';
 
-export default function Front() {
+export default function Front(props: { session: Session }) {
     const router = useRouter();
-    const { data: project, error } = useSWR<ReadablePersonalProjectData>('/api/projects/select', fetcher);
+    const { data: project, error } = useSWR<ReadableProjectData>('/api/projects/select', fetcher);
     const [email, setEmail] = useState<string>('');
     const [projectName, setProjectName] = useState<string>('');
 
     const canDelete = useMemo(() => {
         if (!project || error) return false;
 
-        return projectName === removeSpacesAndSpecialCharacters(project.name).toLowerCase();
+        return projectName === removeSpecialCharacters(project.name).toLowerCase();
     }, [project, error, projectName]);
 
     const handleDelete = async () => {
@@ -43,7 +44,8 @@ export default function Front() {
                     <h1 className={'text-2xl text-white'}>Transfer ownership</h1>
                     <hr />
                     <p className={'text-zinc-400 text-base'}>
-                        Transfer the ownership of your project to another member of your project, your new owner will be able to delete your project and change the settings.
+                        Transfer the ownership of your project to another member of your project, your new owner will be able to delete your
+                        project and change the settings.
                         <b> Your new role will be set to &quot;Admin&quot;.</b>
                     </p>
                     <div className={'flex flex-row gap-x-2'}>
@@ -63,12 +65,13 @@ export default function Front() {
                     <h1 className={'text-2xl text-white'}>Delete this project</h1>
                     <hr />
                     <p className={'text-zinc-400 text-base'}>
-                        Deleting the project will delete all the data associated with it, including all the users and their data. This action is irreversible, please be careful.
+                        Deleting the project will delete all the data associated with it, including all the users and their data. This
+                        action is irreversible, please be careful.
                     </p>
                     <p className={'text-red-400 text-base'}>
                         To delete this project, please type the name of the project.
                         <br />
-                        Project name: &quot;<b>{project && !error && removeSpacesAndSpecialCharacters(project.name).toLowerCase()}</b>&quot;
+                        Project name: &quot;<b>{project && !error && removeSpecialCharacters(project.name).toLowerCase()}</b>&quot;
                     </p>
                     <FormInput placeholder={'Project Name'} onChange={(e) => setProjectName(e.target.value)} value={projectName} />
                 </div>

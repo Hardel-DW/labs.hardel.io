@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import HardelLetter from '@icons/logo/HardelLetter';
-import { AsyncSessionProps } from '@definitions/next-auth';
 import { Suspense } from 'react';
 import StreamingAvatar from '@admin/admin/StreamingAvatar';
 
-export default function Header(props: AsyncSessionProps) {
+export default function Header() {
     return (
         <nav className={'flex justify-between p-4 m-4'}>
             <div>
@@ -22,7 +21,7 @@ export default function Header(props: AsyncSessionProps) {
                 <span className="sr-only">Open user menu</span>
                 <Suspense fallback={<div className={'w-8 h-8 rounded bg-zinc-700 animate-pulse'} />}>
                     {/* @ts-ignore */}
-                    <StreamingAvatar session={props.session} />
+                    <StreamingAvatar />
                 </Suspense>
             </button>
         </nav>

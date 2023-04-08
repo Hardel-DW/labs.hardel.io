@@ -1,10 +1,10 @@
 'use client';
 
-import { MinecraftCategoryData } from '@definitions/minecraft';
+import { ReadableCategoryData } from '@definitions/minecraft';
 import Image from 'next/image';
 
 type Props = {
-    category: MinecraftCategoryData;
+    category: ReadableCategoryData;
     selected: string | undefined;
     onClick: () => void;
 };

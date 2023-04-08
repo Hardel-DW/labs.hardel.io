@@ -15,31 +15,60 @@ type Props = {
     onChange?: (values: string[]) => void;
     values?: string[];
     options: Option[];
+    create?: boolean;
 };
 
 export default function SelectMultiple(props: Props) {
     const [value, setValue] = useState<string>('');
     const [options, setOptions] = useState<string[]>([]);
     const [open, setOpen] = useState<boolean>(false);
+    const [custom, setCustom] = useState<Option[]>([]);
     const ref = React.useRef<HTMLDivElement>(null);
     useClickOutside(ref, () => setOpen(false));
 
     const displayedOptions = useMemo(() => {
-        return props.options.filter((option) => !props.values?.find((value) => value === option.value)).filter((option) => option.name.toLowerCase().includes(value.toLowerCase()));
-    }, [props.options, props.values, value]);
+        const values = props.options
+            .filter((option) => !props.values?.find((value) => value === option.value))
+            .filter((option) => option.name.toLowerCase().includes(value.toLowerCase()));
+
+        if (props.create && values.length === 0) {
+            return [
+                {
+                    value: value,
+                    name: value,
+                    shortName: value.length > 5 ? value.substring(0, 5).trim() + '...' : value
+                }
+            ];
+        }
+
+        return values;
+    }, [props.create, props.options, props.values, value]);
 
     const handleAdd = (option: Option) => {
+        setValue('');
+
+        const customValues = custom.map((custom) => custom.value);
+        if ([...options, ...customValues]?.find((element) => element === option.value)) {
+            return;
+        }
+
+        if (!props.options.find((element) => element.value === option.value)) {
+            setCustom([...custom, option]);
+        }
+
         setOptions([...options, option.value]);
         props.onChange?.([...options, option.value]);
     };
 
     const handleRemove = (option: Option) => {
         setOptions(options.filter((o) => o !== option.value));
+        setCustom(custom.filter((o) => o.value !== option.value));
         props.onChange?.(options.filter((o) => o !== option.value));
     };
 
     const handleRemoveAll = () => {
         setOptions([]);
+        setCustom([]);
         setValue('');
         props.onChange?.([]);
     };
@@ -54,7 +83,7 @@ export default function SelectMultiple(props: Props) {
                 <div className={'flex items-center justify-between p-2'}>
                     <div className={'flex'}>
                         <div className={'flex gap-x-1'}>
-                            {props.options
+                            {[...props.options, ...custom]
                                 .filter((option) => options.find((o) => o === option.value))
                                 .map((option, index) => (
                                     <div key={index} className={'flex items-center justify-center bg-white/10 rounded-md px-2'}>
@@ -83,7 +112,11 @@ export default function SelectMultiple(props: Props) {
                 <div className={'absolute w-full max-h-[200px] overflow-y-auto bg-zinc-900 border-2 mt-1 p-2 border-white/20 rounded-md'}>
                     <div className={'flex flex-col gap-y-1'}>
                         {displayedOptions.map((option, index) => (
-                            <div onClick={() => handleAdd(option)} key={index} className={'px-2 py-1 rounded-md hover:bg-zinc-700 cursor-pointer'}>
+                            <div
+                                onClick={() => handleAdd(option)}
+                                key={index}
+                                className={'px-2 py-1 rounded-md hover:bg-zinc-700 cursor-pointer'}
+                            >
                                 {option.name}
                             </div>
                         ))}

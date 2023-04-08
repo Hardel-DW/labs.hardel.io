@@ -1,24 +1,50 @@
-export type MinecraftItemData = {
-    id: string;
-    minecraftId: string;
-    name: string;
-    image: string;
-    custom?: boolean;
-    tag?: any;
-    categories?: Omit<MinecraftCategoryData, 'items' | 'asset'>[];
-};
-
-export type MinecraftCategoryData = {
+export type ReadableItemData = {
     id: string;
     minecraftId: string;
     name: string;
     asset: string;
-    items: Array<MinecraftItemData>;
+    position?: Position2D;
+    custom?: boolean;
+    tag?: any;
+    projectId?: string;
+    categories?: Omit<ReadableCategoryData, 'items' | 'asset'>[];
+    createdAt?: number;
+    updatedAt?: number;
+};
+
+export type ReadableCategoryData = {
+    id: string;
+    categoryId: string;
+    name: string;
+    asset: string;
+    custom?: boolean;
+    projectId?: string;
+    items: Array<ReadableItemData>;
+    createdAt?: number;
+    updatedAt?: number;
+};
+
+export type ReadableRecipeData = {
+    id: string;
+    name: string;
+    type: RecipeType;
+    custom: boolean;
+    ingredients: ReadableIngredientData[];
+    projectId?: string;
+    createdAt?: number;
+    updatedAt?: number;
+};
+
+export type ReadableIngredientData = {
+    id: number;
+    slot: string;
+    count: number;
+    item: ReadableItemData;
 };
 
 export type SlotData = {
-    id: string;
-    item?: MinecraftItemData;
+    slot: string;
+    item?: ReadableItemData;
     count?: number;
 };
 
@@ -30,7 +56,7 @@ export type RecipeKey = {
 
 export type ShapedRecipeLData = {
     key: string;
-    item: MinecraftItemData;
+    item: ReadableItemData;
     slot: number[];
 };
 
@@ -54,21 +80,3 @@ export type ShapedRecipe = {
 };
 
 export type Recipe = ShapelessRecipe | ShapedRecipe;
-
-type ReadableRecipeData = {
-    id: string;
-    name: string;
-    type: RecipeType;
-    custom: boolean;
-    projectId: string;
-    items: ReadableIngredientData[];
-    createdAt?: number;
-    updatedAt?: number;
-};
-
-type ReadableIngredientData = {
-    id: number;
-    slot: string;
-    count: number;
-    item: MinecraftItemData;
-};

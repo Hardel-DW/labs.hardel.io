@@ -19,7 +19,12 @@ module.exports = {
                 minecraft: ['var(--font-minecraft)']
             },
             gridTemplateColumns: {
-                craft: 'repeat(auto-fill, minmax(420px, 1fr))'
+                craft: 'repeat(auto-fill, minmax(420px, 1fr))',
+                items: 'repeat(auto-fill, minmax(56px, 1fr))'
+            },
+            gridTemplateRows: {
+                craft: 'repeat(auto-fill, minmax(420px, 1fr))',
+                items: 'repeat(auto-fill, minmax(56px, 1fr))'
             }
         }
     },

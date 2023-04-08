@@ -1,37 +1,52 @@
 'use client';
 
-import { MinecraftItemData } from '@definitions/minecraft';
+import { ReadableItemData } from '@definitions/minecraft';
 import React, { useContext } from 'react';
 import Draggable from '@components/dnd/Draggable';
 import { CraftingContext } from '@main/generator/crafting/(component)/CraftingContext';
 import { TooltipContext } from '@components/minecraft/ItemTooltip/TooltipContext';
+import { clx } from '@libs/utils';
 import LoadingImage from '@components/LoadingImage';
 
 type Props = {
-    item: MinecraftItemData;
+    item: ReadableItemData;
+    onClick?: (item: ReadableItemData) => void;
+    selected?: boolean;
 };
 
 export default function DraggableMinecraftItem(props: Props) {
     const { setHoveredItem } = useContext(TooltipContext);
     const { setSelectedItem } = useContext(CraftingContext);
 
-    const handleClick = () => {
-        setSelectedItem(props.item);
-    };
-
     return (
         <Draggable
             draggableId={'minecraftItem'}
             item={props.item}
             spanAttributes={{
-                className: 'w-14 h-14 p-[6px] relative opacity-60 hover:opacity-100 transition ease-in-out cursor-move',
+                className: clx(
+                    'aspect-square m-1 p-2 relative  relative cursor-move',
+                    props.selected ? 'ring-2 ring-gold' : 'ring-2 ring-zinc-800'
+                ),
                 onMouseEnter: () => setHoveredItem(props.item),
                 onMouseLeave: () => setHoveredItem(undefined),
-                onClick: handleClick
+                onClick: () => setSelectedItem(props.item)
             }}
         >
-            <div>
-                <LoadingImage alt={'Minecraft Item'} src={props.item.image} height={64} width={64} className={'w-full h-full pixelated'} />
+            <div onClick={() => props.onClick?.(props.item)}>
+                {props.item.position ? (
+                    <div
+                        className={'item_atlas'}
+                        style={{
+                            backgroundPosition: `${props.item.position?.x}px ${props.item.position?.y}px`
+                        }}
+                    />
+                ) : (
+                    <LoadingImage
+                        alt={'Minecraft Item'}
+                        src={props.item.asset}
+                        className={'w-full h-full pixelated hover:scale-125 transition ease-in-out'}
+                    />
+                )}
             </div>
         </Draggable>
     );

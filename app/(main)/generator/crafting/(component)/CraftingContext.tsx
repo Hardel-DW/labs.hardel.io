@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useMemo, useState } from 'react';
-import { MinecraftItemData, ReadableIngredientData, SlotData } from '@definitions/minecraft';
+import { ReadableIngredientData, ReadableItemData, SlotData } from '@definitions/minecraft';
 import { DEFAULT_SLOT_VALUE } from '@libs/constant';
 import { RecipeType } from '@prisma/client';
 
@@ -12,13 +12,13 @@ type CraftingContextData = {
     setRecipeType: (recipeType: RecipeType) => void;
     resultCount: number;
     setResultCount: (count: number) => void;
-    selectedItem: MinecraftItemData | undefined;
-    setSelectedItem: (item: MinecraftItemData | undefined) => void;
+    selectedItem: ReadableItemData | undefined;
+    setSelectedItem: (item: ReadableItemData | undefined) => void;
     editingId?: string;
     setEditingId: (editingId?: string) => void;
     craftName: string;
     setCraftName: (name: string) => void;
-    setSlotItem: (slotId: string, item: MinecraftItemData | undefined) => void;
+    setSlotItem: (slotId: string, item: ReadableItemData | undefined) => void;
     setSlotFromIngredients: (ingredients: ReadableIngredientData[]) => void;
 };
 
@@ -26,12 +26,12 @@ export const CraftingContext = createContext<CraftingContextData>({} as Crafting
 export default function CraftingContextProvider(props: { children: React.ReactNode }) {
     const [slots, setSlots] = React.useState<SlotData[]>(DEFAULT_SLOT_VALUE);
     const [recipeType, setRecipeType] = React.useState<RecipeType>(RecipeType.SHAPELESS);
-    const [selectedItem, setSelectedItem] = React.useState<MinecraftItemData | undefined>(undefined);
+    const [selectedItem, setSelectedItem] = React.useState<ReadableItemData | undefined>(undefined);
     const [editingId, setEditingId] = React.useState<string>();
     const [craftName, setCraftName] = useState<string>('');
 
-    const setSlotItem = (slotId: string, item: MinecraftItemData | undefined) => {
-        const slot = slots.find((slot) => slot.id === slotId);
+    const setSlotItem = (slotId: string, item: ReadableItemData | undefined) => {
+        const slot = slots.find((slot) => slot.slot === slotId);
         if (slot) {
             if (!item) {
                 slot.item = item;
@@ -41,7 +41,7 @@ export default function CraftingContextProvider(props: { children: React.ReactNo
                 slot.item = item;
             }
         } else {
-            slots.push({ id: slotId, item });
+            slots.push({ slot: slotId, item });
         }
 
         setSlots([...slots]);
@@ -50,7 +50,7 @@ export default function CraftingContextProvider(props: { children: React.ReactNo
     const setSlotFromIngredients = (ingredients: ReadableIngredientData[]) => {
         const newSlots: SlotData[] = ingredients.map((ingredient) => {
             return {
-                id: ingredient.slot,
+                slot: ingredient.slot,
                 item: ingredient.item,
                 count: ingredient.count
             };
@@ -60,11 +60,11 @@ export default function CraftingContextProvider(props: { children: React.ReactNo
     };
 
     const setResultCount = (count: number) => {
-        setSlots((slots) => slots.map((slot) => (slot.id === 'crafting:result' ? { ...slot, count } : slot)));
+        setSlots((slots) => slots.map((element) => (element.slot === 'crafting:result' ? { ...element, count } : element)));
     };
 
     const resultCount = useMemo(() => {
-        return slots.find((slot) => slot.id === 'crafting:result')?.count ?? 1;
+        return slots.find((element) => element.slot === 'crafting:result')?.count ?? 1;
     }, [slots]);
 
     return (

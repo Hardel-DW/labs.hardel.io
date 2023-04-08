@@ -1,11 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import React, { useContext, useMemo } from 'react';
 import Droppable from '@components/dnd/Droppable';
-import { MinecraftItemData } from '@definitions/minecraft';
+import { ReadableItemData } from '@definitions/minecraft';
 import { CraftingContext } from '@main/generator/crafting/(component)/CraftingContext';
 import { TooltipContext } from '@components/minecraft/ItemTooltip/TooltipContext';
+import LoadingImage from '@components/LoadingImage';
 
 type Props = {
     id: string;
@@ -17,14 +17,14 @@ export default function DroppableMinecraftSlot(props: Props) {
     const [isOver, setIsOver] = React.useState(false);
 
     const slot = useMemo(() => {
-        return slots.find((slot) => slot.id === props.id);
+        return slots.find((element) => element.slot === props.id);
     }, [props.id, slots]);
 
     const handleClick = () => (slot?.item ? setSlotItem(props.id, undefined) : setSlotItem(props.id, selectedItem));
 
     return (
         <Droppable
-            handleDrop={(item: MinecraftItemData) => setSlotItem(props.id, item)}
+            handleDrop={(item: ReadableItemData) => setSlotItem(props.id, item)}
             hovered={setIsOver}
             acceptId={['minecraftItem']}
             spanAttributes={{
@@ -37,7 +37,7 @@ export default function DroppableMinecraftSlot(props: Props) {
                 onMouseLeave: () => setHoveredItem(undefined)
             }}
         >
-            {slot?.item?.image && <Image alt={''} src={slot.item.image} height={64} width={64} className={'w-full h-full pixelated'} />}
+            {slot?.item?.asset && <LoadingImage alt={'Minecraft Item'} src={slot.item.asset} className={'w-full h-full pixelated'} />}
             {slot?.item && slot?.count && slot.count > 1 && (
                 <span className={'absolute bottom-0 right-0 text-xl text-white font-seven'}>{slot.count}</span>
             )}

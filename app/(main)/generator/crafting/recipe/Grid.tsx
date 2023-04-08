@@ -23,7 +23,7 @@ export default function RecipeGrid({ data }: Props) {
     const handleEdit = (data: ReadableRecipeData) => {
         setRecipeType(data.type);
         setCraftName(data.name);
-        setSlotFromIngredients(data.items);
+        setSlotFromIngredients(data.ingredients);
         setEditingId(data.id);
         router.push('/generator/crafting');
     };
@@ -31,7 +31,7 @@ export default function RecipeGrid({ data }: Props) {
     return (
         <>
             {display.map((recipe, index) => (
-                <div className={'hover:scale-95 transition ease-in-out duration-200 cursor-pointer'} key={index}>
+                <div className={'hover:scale-95 transition ease-in-out duration-200 cursor-pointer'} key={recipe.id}>
                     <CraftingTableGUI title={recipe.name} data={recipe} onEdit={() => handleEdit(recipe)} />
                 </div>
             ))}

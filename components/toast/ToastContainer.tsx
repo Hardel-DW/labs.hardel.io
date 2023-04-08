@@ -9,13 +9,7 @@ type ToastContextType = {
     addToast: (status: ToastStatus, title: string, children: React.ReactNode) => void;
     removeToast: (id: number) => void;
     removeAllToasts: () => void;
-    addPromiseToast: (
-        promise: Promise<any>,
-        processingMessage: string,
-        successMessage: string,
-        errorMessage: string,
-        children: React.ReactNode
-    ) => void;
+    addPromiseToast: (promise: Promise<any>, successMessage: string, errorMessage: string, children: React.ReactNode) => void;
 };
 
 export const ToastContext = React.createContext<ToastContextType>({} as ToastContextType);
@@ -51,13 +45,7 @@ export default function ToastContainer({ children }: { children: React.ReactNode
 
     const removeAllToasts = () => setToasts([]);
 
-    const addPromiseToast = (
-        promise: Promise<any>,
-        processingMessage: string,
-        successMessage: string,
-        errorMessage: string,
-        children: React.ReactNode
-    ) => {
+    const addPromiseToast = (promise: Promise<any>, successMessage: string, errorMessage: string, children: React.ReactNode) => {
         promise
             .then(() => {
                 addToast(ToastStatus.SUCCESS, successMessage, children);

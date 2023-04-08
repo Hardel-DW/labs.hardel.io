@@ -1,10 +1,9 @@
 'use client';
 import Image from 'next/image';
-import Harion from '@images/harion.webp';
+import Harion from '@images/logo/harion.webp';
 import InvitationBadge from '@components/badge/Invitation';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { clx, timeSince } from '@libs/utils';
-import { ReadablePersonalProjectData } from '@definitions/project';
 import { acceptProjectInvite, leaveProject, selectProject } from '@libs/request/client/project';
 import SettingsOption from '@icons/Common/Option';
 import WhiteButton from '@components/form/Button/White';
@@ -12,9 +11,12 @@ import useClickOutside from '@libs/hooks/useClickOutside';
 import { ProjectRole } from '@prisma/client';
 import AcceptationModal from '@components/modal/Accept';
 import { useRouter } from 'next/navigation';
+import { ReadableProjectData } from '@definitions/project';
+import { Session } from 'next-auth';
 
 type Props = {
-    project: ReadablePersonalProjectData;
+    project: ReadableProjectData;
+    session: Session;
 };
 
 export default function ProjectCard(props: Props) {
@@ -25,7 +27,7 @@ export default function ProjectCard(props: Props) {
     useClickOutside(ref, () => setOpen(false));
 
     const handleClick = () => {
-        if (props.project.isInvited) {
+        if (props.project?.isInvited) {
             setModal(true);
         }
     };
@@ -47,12 +49,16 @@ export default function ProjectCard(props: Props) {
 
     const timeAgp = timeSince(new Date(props.project?.updatedAt ?? props.project?.createdAt ?? new Date()));
 
+    const isSelected = useMemo(() => {
+        return props.project?.id === props.session?.project?.id;
+    }, [props.project?.id, props.session?.project?.id]);
+
     return (
         <>
             <div
                 className={clx(
                     'bg-black/50 border flex flex-col rounded-xl py-4 px-6 transition ease-in-out duration-300',
-                    props.project.isSelected ? 'border-gold' : 'border-zinc-700 hover:border-white',
+                    isSelected ? 'border-gold' : 'border-zinc-700 hover:border-white',
                     props.project.isInvited ? 'cursor-pointer' : ''
                 )}
                 onClick={() => handleClick()}
@@ -73,7 +79,7 @@ export default function ProjectCard(props: Props) {
                                 <div className={'flex gap-x-2 items-center'}>
                                     <span className="block text-lg font-semibold text-white">{props.project.name}</span>
                                     <span className="block text-[0.75rem] flex items-center px-2 pt-[1px] h-fit rounded-xl text-white border border-zinc-700">
-                                        {props.project.role}
+                                        {props.session.project?.role}
                                     </span>
                                 </div>
                                 <span className="block text-sm font-medium break-keep text-gray-500 truncate max-w-[12rem]">
@@ -81,7 +87,7 @@ export default function ProjectCard(props: Props) {
                                 </span>
                             </div>
                         </div>
-                        {props.project.isInvited ? (
+                        {props.session.project?.isInvited ? (
                             <InvitationBadge />
                         ) : (
                             <div className={'relative'}>
@@ -96,7 +102,7 @@ export default function ProjectCard(props: Props) {
                                         <div onClick={() => handleSelect()} className={'px-4 cursor-pointer rounded-md hover:bg-zinc-800'}>
                                             Select
                                         </div>
-                                        {props.project.role !== ProjectRole.OWNER && (
+                                        {props.session.project?.role !== ProjectRole.OWNER && (
                                             <div
                                                 onClick={handleLeave}
                                                 className={'px-4 cursor-pointer rounded-md hover:bg-zinc-800 text-red-500'}
@@ -104,6 +110,12 @@ export default function ProjectCard(props: Props) {
                                                 Leaves
                                             </div>
                                         )}
+                                        <div
+                                            onClick={async () => await navigator.clipboard.writeText(JSON.stringify(props.project))}
+                                            className={'px-4 cursor-pointer rounded-md hover:bg-zinc-800'}
+                                        >
+                                            Debug
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -117,7 +129,7 @@ export default function ProjectCard(props: Props) {
                         <span>
                             {timeAgp.value} {timeAgp.name} ago
                         </span>
-                        {!props.project.isInvited && !props.project.isSelected && <WhiteButton onClick={handleSelect}>Select</WhiteButton>}
+                        {!props.session.project?.isInvited && !isSelected && <WhiteButton onClick={handleSelect}>Select</WhiteButton>}
                     </div>
                 </div>
             </div>

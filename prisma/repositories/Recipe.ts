@@ -1,21 +1,43 @@
 import { ActivityType, Ingredient, Item, PrismaClient, Recipes, RecipeType } from '@prisma/client';
-import { MinecraftItemData, ReadableRecipeData, SlotData } from '@definitions/minecraft';
+import { ReadableRecipeData, SlotData } from '@definitions/minecraft';
 import ItemRepository from '@repositories/Items';
-import createActivity from '@libs/request/server/project/activity/create';
-
-export type CreateRecipeData = {
-    name: string;
-    type: RecipeType;
-    custom: boolean;
-    items: SlotData[];
-    projectId: string;
-};
+import { createActivity } from '@repositories/ActivityRepository';
+import { z } from 'zod';
+import prisma from '@libs/prisma';
 
 type CreateIngredientData = { slot: string; count: number; itemId: string };
-
 type RecipeData = Recipes & {
-    items: (Ingredient & { item: Item })[];
+    ingredients?: (Ingredient & { item: Item })[];
 };
+
+export type CreateRecipeModel = z.infer<typeof CreateRecipeModel>;
+export const CreateRecipeModel = z.object({
+    name: z.string().min(1).max(50),
+    type: z.nativeEnum(RecipeType),
+    custom: z.boolean(),
+    ingredients: z.array(
+        z.object({
+            slot: z.string().min(1).max(50),
+            count: z.number().min(1).max(64).optional(),
+            item: z.any()
+        })
+    )
+});
+
+export type UpdateRecipeModel = z.infer<typeof UpdateRecipeModel>;
+export const UpdateRecipeModel = z.object({
+    name: z.string().min(1).max(50).optional(),
+    type: z.nativeEnum(RecipeType).optional(),
+    custom: z.boolean().optional(),
+    ingredients: z.array(
+        z.object({
+            slot: z.string().min(1).max(50),
+            count: z.number().min(1).max(64).optional(),
+            item: z.any()
+        })
+    )
+});
+
 export default class RecipeRepository {
     constructor(private readonly prisma: PrismaClient['recipes']) {}
 
@@ -24,12 +46,14 @@ export default class RecipeRepository {
      * @param id
      */
     async findOne(id: string) {
+        z.string().cuid().parse(id);
+
         const response = await this.prisma.findUniqueOrThrow({
             where: {
                 id
             },
             include: {
-                items: {
+                ingredients: {
                     include: {
                         item: true
                     }
@@ -45,14 +69,32 @@ export default class RecipeRepository {
      * @param projectId
      */
     async findByProject(projectId: string) {
+        z.string().cuid().parse(projectId);
+
         const response = await this.prisma.findMany({
             where: {
                 projectId
             },
             include: {
-                items: {
+                ingredients: {
                     include: {
                         item: true
+                    }
+                }
+            }
+        });
+
+        return this.recipesToReadable(response);
+    }
+
+    async findByItem(itemId: string) {
+        z.string().cuid().parse(itemId);
+
+        const response = await this.prisma.findMany({
+            where: {
+                ingredients: {
+                    some: {
+                        itemId
                     }
                 }
             }
@@ -64,19 +106,34 @@ export default class RecipeRepository {
     /**
      * Create a new recipe
      */
-    async create(userId: string, projectId: string, recipe: CreateRecipeData) {
+    async create(userId: string, projectId: string, recipe: CreateRecipeModel) {
+        z.object({
+            userId: z.string().cuid(),
+            projectId: z.string().cuid()
+        }).parse({ userId, projectId });
+        CreateRecipeModel.parse(recipe);
+
+        const recipes = await this.findByProject(projectId);
+        const recipeExists = recipes.some((r) => {
+            return r.ingredients.every((i) => recipe.ingredients.some((ri) => ri.slot === i.slot && ri.item.id === i.item.id));
+        });
+
+        if (recipeExists) {
+            throw new Error('Recipe already exists');
+        }
+
         const response = await this.prisma.create({
             data: {
-                projectId: recipe.projectId,
+                projectId: projectId,
                 name: recipe.name,
                 type: recipe.type,
                 custom: recipe.custom,
-                items: {
-                    create: this.slotDataToIngredient(recipe.items)
+                ingredients: {
+                    create: this.slotDataToIngredient(recipe.ingredients)
                 }
             },
             include: {
-                items: {
+                ingredients: {
                     include: {
                         item: true
                     }
@@ -88,7 +145,57 @@ export default class RecipeRepository {
         return this.recipeToReadable(response);
     }
 
+    async update(userId: string, projectId: string, recipeId: string, data: UpdateRecipeModel) {
+        z.object({
+            userId: z.string().cuid(),
+            projectId: z.string().cuid(),
+            recipeId: z.string().cuid()
+        }).parse({ userId, projectId, recipeId });
+        UpdateRecipeModel.parse(data);
+
+        const ingredients = this.slotDataToIngredient(data.ingredients);
+        const response = await this.prisma.update({
+            where: {
+                id: recipeId
+            },
+            data: {
+                type: data.type,
+                custom: data.custom,
+                name: data.name
+            },
+            include: {
+                ingredients: {
+                    include: {
+                        item: true
+                    }
+                }
+            }
+        });
+
+        await prisma.ingredient.deleteMany({
+            where: {
+                recipeId
+            }
+        });
+
+        await prisma.ingredient.createMany({
+            data: ingredients.map((ingredient) => ({
+                ...ingredient,
+                recipeId
+            }))
+        });
+
+        createActivity(userId, projectId, '%user% updated the recipe ' + response.name, ActivityType.INFO);
+        return this.recipeToReadable(response);
+    }
+
     async delete(userId: string, projectId: string, id: string) {
+        z.object({
+            userId: z.string().cuid(),
+            projectId: z.string().cuid(),
+            id: z.string().cuid()
+        }).parse({ userId, projectId, id });
+
         const response = await this.prisma.delete({
             where: {
                 id
@@ -102,58 +209,27 @@ export default class RecipeRepository {
         return response;
     }
 
-    async update(userId: string, projectId: string, recipeId: string, data: Omit<CreateRecipeData, 'projectId'>) {
-        const ingredientData = data.items;
-        await this.updateIngredients(userId, projectId, recipeId, ingredientData);
-        const response = await this.prisma.update({
+    async deleteByItem(itemId: string) {
+        z.string().cuid().parse(itemId);
+
+        // Delete all recipes that contain the item
+        // But i don't know why, but it deletes only ingredients, normally it should delete the recipe too.
+        await this.prisma.deleteMany({
             where: {
-                id: recipeId
-            },
-            data: {
-                type: data.type,
-                custom: data.custom,
-                name: data.name
-            },
-            include: {
-                items: {
-                    include: {
-                        item: true
+                ingredients: {
+                    some: {
+                        itemId
                     }
                 }
             }
         });
 
-        return this.recipeToReadable(response);
-    }
-
-    async updateIngredients(userId: string, projectId: string, recipesId: string, ingredients: SlotData[]) {
-        await prisma.ingredient.deleteMany({
+        // Fix: delete all recipes contains no ingredients
+        await this.prisma.deleteMany({
             where: {
-                recipesId
-            }
-        });
-
-        const ingredientData = this.slotDataToIngredient(ingredients);
-        await prisma.ingredient.createMany({
-            data: ingredientData.map((ingredient) => ({
-                ...ingredient,
-                recipesId
-            }))
-        });
-
-        const recipe = await this.findOne(recipesId);
-
-        createActivity(userId, projectId, '%user% updated the recipe ' + recipe.name, ActivityType.INFO);
-    }
-
-    async updateName(userId: string, projectId: string, recipeId: string, name: string) {
-        createActivity(userId, projectId, '%user% updated the name of the recipe by' + name, ActivityType.INFO);
-        return this.prisma.update({
-            where: {
-                id: recipeId
-            },
-            data: {
-                name
+                ingredients: {
+                    none: {}
+                }
             }
         });
     }
@@ -163,7 +239,7 @@ export default class RecipeRepository {
      * @param data
      * @private
      */
-    private recipesToReadable(data: RecipeData[]): ReadableRecipeData[] {
+    recipesToReadable(data: RecipeData[]): ReadableRecipeData[] {
         return data.map((recipe) => this.recipeToReadable(recipe));
     }
 
@@ -172,13 +248,7 @@ export default class RecipeRepository {
      * @param data
      * @private
      */
-    private recipeToReadable(data: RecipeData): ReadableRecipeData {
-        const itemRepo = new ItemRepository(prisma.item);
-
-        const itemToData = (item: Item): MinecraftItemData => {
-            return itemRepo.itemToData(item);
-        };
-
+    recipeToReadable(data: RecipeData): ReadableRecipeData {
         return {
             id: data.id,
             name: data.name,
@@ -187,24 +257,25 @@ export default class RecipeRepository {
             projectId: data.projectId,
             createdAt: data.createdAt?.getTime(),
             updatedAt: data.updatedAt?.getTime(),
-            items: data.items.map((item) => ({
-                slot: item.slot,
-                count: item.count,
-                id: item.id,
-                item: itemToData(item.item)
-            }))
+            ingredients:
+                data.ingredients?.map((ingredient) => ({
+                    slot: ingredient.slot,
+                    count: ingredient.count,
+                    id: ingredient.id,
+                    item: new ItemRepository(prisma.item).itemToReadable(ingredient.item)
+                })) ?? []
         };
     }
 
     private slotDataToIngredient(slots: SlotData[]): CreateIngredientData[] {
         const ingredients = [] as CreateIngredientData[];
-        for (const slot of slots) {
-            if (!slot.item) continue;
+        for (const element of slots) {
+            if (!element.item) continue;
 
             ingredients.push({
-                slot: slot.id,
-                itemId: slot.item.id,
-                count: slot.count ?? 1
+                slot: element.slot,
+                itemId: element.item.id,
+                count: element.count ?? 1
             });
         }
 

@@ -8,7 +8,7 @@ type Props = {
 };
 
 export default function Navigation({ session }: Props) {
-    const sessionRole = session?.project?.role;
+    const sessionRole = session?.project?.role as ProjectRole;
 
     return (
         <>

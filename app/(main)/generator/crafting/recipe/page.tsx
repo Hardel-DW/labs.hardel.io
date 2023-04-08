@@ -1,7 +1,5 @@
 import React, { Suspense } from 'react';
-import { ReadableRecipeData } from '@definitions/minecraft';
-import { getRecipesFromProject } from '@libs/request/server/project/recipe/get';
-import { getSession } from '@libs/session';
+import { getCraftData, getSession, preloadCraftData } from '@libs/session';
 import ArrowBack from '@icons/Common/ArrowBack';
 import Link from 'next/link';
 import SearchContext from '@components/context/SearchContext';
@@ -10,22 +8,11 @@ import CraftingManager from '@main/generator/crafting/recipe/Manager';
 import SkeletonCraftingTableGUI from '@components/minecraft/gui/crafting/Loading';
 import { notFound } from 'next/navigation';
 
-async function getData(id: string | undefined) {
-    if (!id) throw new Error('No project ID provided');
-
-    const recipes = await getRecipesFromProject(id);
-    if (!recipes.request.success) {
-        throw new Error('Failed to get categories');
-    }
-
-    return recipes.data as ReadableRecipeData[];
-}
-
 export default async function Page() {
     const session = await getSession();
-    if (!session) notFound();
-
-    const data = getData(session?.project?.id);
+    if (!session?.project?.id) notFound();
+    preloadCraftData(session.project.id);
+    const data = getCraftData(session.project.id);
 
     return (
         <SearchContext>

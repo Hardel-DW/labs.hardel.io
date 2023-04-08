@@ -1,5 +1,15 @@
-import { MinecraftItemData } from '@definitions/minecraft';
-import { Activity, ProjectRole, User } from '@prisma/client';
+import { ReadableCategoryData, ReadableItemData, ReadableRecipeData } from '@definitions/minecraft';
+import { ActivityType, ProjectRole } from '@prisma/client';
+
+type ReadableActivityData = {
+    id: string;
+    message: string;
+    asset?: string;
+    action: ActivityType;
+    projectId?: string;
+    createdAt?: number;
+    createdBy?: ReadableMemberData;
+};
 
 type ReadableProjectData = {
     id: string;
@@ -8,50 +18,35 @@ type ReadableProjectData = {
     version: string;
     namespace: string;
     asset: string;
-    items: MinecraftItemData[];
-    recipes: any[];
-    activities: any[];
+    items: ReadableItemData[];
+    recipes: ReadableRecipeData[];
+    activities: ReadableActivityData[];
+    categories: ReadableCategoryData[];
+    users: ReadableMemberData[];
+    isSelected?: boolean;
+    isInvited?: boolean;
+    role?: ProjectRole;
+    isOwner?: boolean;
     createdAt?: number;
     updatedAt?: number | null;
-    users: {
-        userId: string;
-        role: ProjectRole;
-        joinedAt: number;
-    }[];
 };
 
-export type ReadablePersonalProjectData = ReadableProjectData & PersonalProjectData;
-
-export type PersonalProjectData = {
-    joinedAt?: number;
-    role: ProjectRole;
-    isSelected: boolean;
+type ReadableMemberData = {
     userId: string;
-    isInvited: boolean;
-};
-
-export type ReadableProject = Omit<ReadableProjectData, 'users'> & {
-    users: PersonalProjectData[];
-};
-
-type MemberData = {
-    id: string;
-    email: string;
-    name: string;
-    image: string;
     role: ProjectRole;
     joinedAt: number;
-    isInvited: boolean;
+    isInvited?: boolean;
+    isSelected?: boolean;
+    accountData?: {
+        email: string;
+        name: string;
+        avatar: string;
+    };
 };
 
-export type MembersData = {
-    members: MemberData[];
-    self: PersonalProjectData;
-    projectId: string;
-};
-
-type ReadableActivityData = Activity & { createdBy: User | null };
-
+/**
+ * Used in Dashboard Activity for consulting the activity of a project
+ */
 export type OutputActivities = {
     month: number;
     year: number;

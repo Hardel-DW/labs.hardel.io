@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import WhiteButton from '@components/form/Button/White';
 import SelectItem from '@components/form/Select/item';
-import { connectVanillaItemToCategory } from '@libs/request/client/minecraft/category';
 
 type Props = {
     onClose: () => void;
@@ -19,7 +18,7 @@ export default function AdminAddItem(props: Props) {
     const sendData = async () => {
         if (!id || !props.categoryId) return;
 
-        connectVanillaItemToCategory(props.categoryId, id)
+        /*        connectVanillaItemToCategory(props.categoryId, id)
             .then(() => {
                 setItemMinecraftId(undefined);
                 router.refresh();
@@ -28,7 +27,7 @@ export default function AdminAddItem(props: Props) {
             .finally(() => {
                 router.refresh();
                 props.onClose();
-            });
+            });*/
     };
 
     return (
@@ -41,8 +40,10 @@ export default function AdminAddItem(props: Props) {
                 <SelectItem
                     value={itemMinecraftId}
                     onChange={(item) => {
-                        setItemMinecraftId(item?.minecraftId);
-                        setId(item?.id);
+                        if (!(typeof item === 'string')) {
+                            setItemMinecraftId(item?.minecraftId);
+                            setId(item?.id);
+                        }
                     }}
                 />
                 <hr />

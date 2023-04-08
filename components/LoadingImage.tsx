@@ -7,9 +7,10 @@ import Placeholder from '@images/design/item_placeholder.webp';
 type Props = {
     src?: string;
     alt: string;
-    width: number;
-    height: number;
+    width?: number;
+    height?: number;
     className?: string;
+    fill?: boolean;
 };
 
 export default function LoadingImage(props: Props) {
@@ -26,8 +27,8 @@ export default function LoadingImage(props: Props) {
 
     return (
         <Fragment>
-            {loading && <NextImage src={Placeholder} alt={'Loading...'} width={props.width} height={props.height} className={props.className} />}
-            <NextImage src={props.src ?? Placeholder} alt={props.alt} width={props.width} height={props.height} className={clx(props.className, loading ? 'hidden' : 'block')} />
+            {loading && <NextImage src={Placeholder} alt={'Loading...'} width={32} height={32} className={props.className} />}
+            <img src={props.src} alt={props.alt} className={clx(props.className, loading ? 'hidden' : 'block')} />
         </Fragment>
     );
 }

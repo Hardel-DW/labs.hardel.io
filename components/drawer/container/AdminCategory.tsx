@@ -5,8 +5,9 @@ import FormInput from '@components/form/input';
 import WhiteButton from '@components/form/Button/White';
 import RedButton from '@components/form/Button/Red';
 import { useRouter } from 'next/navigation';
-import { deleteVanillaCategory, upsertVanillaCategory } from '@libs/request/client/minecraft/category';
+import { deleteVanillaCategory } from '@libs/request/client/category';
 import SelectItem from '@components/form/Select/item';
+import { ReadableItemData } from '@definitions/minecraft';
 
 export type AdminCategoryDefaultValue = {
     name: string;
@@ -28,12 +29,12 @@ export default function AdminCategory(props: Props) {
     const sendData = async () => {
         if (!name || !itemMinecraftId) return;
 
-        await upsertVanillaCategory(name, itemMinecraftId, props.defaultValues?.id).then(() => {
+        /*        await createCategory(name, itemMinecraftId, props.defaultValues?.id).then(() => {
             setName('Yay');
             setItemMinecraftId('minecraft:stone');
             router.refresh();
             props.onClose();
-        });
+        });*/
     };
 
     const handleDelete = async () => {
@@ -60,6 +61,10 @@ export default function AdminCategory(props: Props) {
         }
     }, [props.defaultValues]);
 
+    const handleItemSelect = (item: ReadableItemData | string | undefined) => {
+        setItemMinecraftId(!(typeof item === 'string') ? item?.minecraftId : item);
+    };
+
     return (
         <div>
             <div>
@@ -75,7 +80,7 @@ export default function AdminCategory(props: Props) {
                     <p className="text-xl mb-0 font-bold">Asset</p>
                     <small className="text-sm text-gray-400">The asset will be displayed depending on the id of the item.</small>
                 </div>
-                <SelectItem value={itemMinecraftId} onChange={(item) => setItemMinecraftId(item?.minecraftId)} />
+                <SelectItem value={itemMinecraftId} onChange={handleItemSelect} />
                 <hr />
             </div>
 

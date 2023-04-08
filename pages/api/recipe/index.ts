@@ -1,63 +1,45 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { RestRequest } from '@definitions/api';
-import RestHelper from '@libs/request/server/form-checker';
-import { RestErrorType } from '@libs/constant';
-import { getRecipesFromProject } from '@libs/request/server/project/recipe/get';
-import { deleteRecipe } from '@libs/request/server/project/recipe/delete';
-import { updateRecipe } from '@libs/request/server/project/recipe/update';
-import { createRecipe } from '@libs/request/server/project/recipe/create';
-import ProjectRepository from '@repositories/Project';
-import { CreateRecipeData } from '@repositories/Recipe';
+import RestHelper from '@libs/request/rest-helper';
+import { ErrorType, StatusCode } from '@libs/constant';
+import RecipeRepository, { CreateRecipeModel } from '@repositories/Recipe';
+import prisma from '@libs/prisma';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<RestRequest<any>>) {
-    const method = req.method;
-    const { recipeId, data } = req.body as { recipeId: string; data: Omit<CreateRecipeData, 'projectId'> };
-    const userId = await new RestHelper(req, res).getUserId();
-    if (!userId) {
-        new RestHelper(req, res).addError(RestErrorType.Unauthorized, 'User not found').send();
-        return;
-    }
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+    const { recipeId, data } = req.body as { recipeId: string; data: CreateRecipeModel };
 
-    const project = await new ProjectRepository(prisma.project).findSelectedProject(userId);
-    const errors = new RestHelper(req, res).checkIsVariableIsDefined(project.id, 'projectId').checkErrors();
-    if (errors) return;
-
-    switch (method) {
-        case 'GET': {
-            const data = await getRecipesFromProject(project.id);
-            res.status(data.request.statusCode).json(data);
-            break;
+    try {
+        const { userId, projectId } = await new RestHelper(req, res).getProjectId();
+        switch (req.method) {
+            case 'GET': {
+                const response = await new RecipeRepository(prisma.recipes).findByProject(projectId);
+                res.status(StatusCode.Ok).json(response);
+                break;
+            }
+            case 'DELETE': {
+                const response = await new RecipeRepository(prisma.recipes).delete(userId, projectId, recipeId);
+                res.status(StatusCode.Ok).json(response);
+                break;
+            }
+            case 'PUT': {
+                const response = await new RecipeRepository(prisma.recipes).update(userId, projectId, recipeId, data);
+                res.status(StatusCode.Ok).json(response);
+                break;
+            }
+            case 'POST': {
+                const response = await new RecipeRepository(prisma.recipes).create(userId, projectId, data);
+                res.status(StatusCode.Created).json(response);
+                break;
+            }
+            default: {
+                res.status(StatusCode.MethodNotAllowed).json({ code: ErrorType.MethodNotAllowed });
+            }
         }
-        case 'DELETE': {
-            const errors = new RestHelper(req, res).checkIsVariableIsDefined(recipeId, 'recipeId').checkErrors();
-            if (errors) return;
-
-            const data = await deleteRecipe(userId, project.id, recipeId);
-            res.status(data.request.statusCode).json(data);
-            break;
-        }
-        case 'POST': {
-            const errors = new RestHelper(req, res)
-                .checkIsVariableIsDefined(recipeId, 'recipeId')
-                .checkIsVariableIsDefined(data, 'data')
-                .checkErrors();
-
-            if (errors) return;
-
-            const responses = await updateRecipe(userId, project.id, recipeId, data);
-            res.status(responses.request.statusCode).json(responses);
-            break;
-        }
-        case 'PUT': {
-            const errors = new RestHelper(req, res).checkIsVariableIsDefined(data, 'data').checkErrors();
-            if (errors) return;
-
-            const responses = await createRecipe(userId, project.id, data);
-            res.status(responses.request.statusCode).json(responses);
-            break;
-        }
-        default: {
-            new RestHelper(req, res).addError(RestErrorType.MethodNotAllowed, 'Method not allowed').checkErrors();
-        }
+    } catch (error: any) {
+        res.status(StatusCode.InternalServerError).json({
+            code: ErrorType.InternalServerError,
+            error: {
+                message: error.message
+            }
+        });
     }
 }

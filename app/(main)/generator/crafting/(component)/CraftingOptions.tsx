@@ -4,7 +4,7 @@ import FormInput from '@components/form/input';
 import WhiteButton from '@components/form/Button/White';
 import Add from '@icons/Common/Add';
 import { useContext, useState } from 'react';
-import { createRecipe, updateRecipe } from '@libs/request/client/project/recipe';
+import { createRecipe, updateRecipe } from '@libs/request/client/recipe';
 import { CraftingContext } from '@main/generator/crafting/(component)/CraftingContext';
 import HardelLoader from '@components/loader/HardelLoader';
 import { ToastContext } from '@components/toast/ToastContainer';
@@ -19,10 +19,10 @@ export default function CraftingGroupButton() {
     const handleAdd = () => {
         setLoading(true);
         const promise = createRecipe({
-            items: slots,
             name: craftName,
             type: recipeType,
-            custom: false
+            custom: false,
+            ingredients: slots
         })
             .then(() => {
                 setSlots([]);
@@ -32,7 +32,6 @@ export default function CraftingGroupButton() {
 
         addPromiseToast(
             promise,
-            'Processing...',
             'Successfully recipe added',
             'Failed to create recipe',
             `The crafting recipe ${craftName} has been created successfully.`
@@ -46,7 +45,7 @@ export default function CraftingGroupButton() {
         const promise = updateRecipe(editingId, {
             type: recipeType,
             name: craftName,
-            items: slots,
+            ingredients: slots,
             custom: false
         })
             .then(() => {
@@ -58,7 +57,6 @@ export default function CraftingGroupButton() {
 
         addPromiseToast(
             promise,
-            'Processing...',
             'Successfully updated recipe',
             'Failed to update recipe',
             `The crafting recipe ${craftName} has been updated successfully.`

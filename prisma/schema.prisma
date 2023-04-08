@@ -56,8 +56,7 @@ model User {
   image         String?    @db.Text
   accounts      Account[]
   sessions      Session[]
-  UserData      UserData[]
-  Activity      Activity[]
+  userData      UserData[]
 }
 
 model VerificationToken {
@@ -72,27 +71,33 @@ model Item {
   id          String       @id @default(cuid())
   minecraftId String       @db.VarChar(80)
   name        String       @db.VarChar(80)
-  asset       String       @default("vanilla/missing.webp")
-  tag         String?
   custom      Boolean      @default(false)
+  tag         String?
+  assetX      Int?         @db.Int
+  assetY      Int?         @db.Int
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
   categories  Category[]
+  Ingredients Ingredient[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime?    @updatedAt
-  Project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId   String?
-  Ingredient  Ingredient[]
 
   @@index([projectId])
 }
 
 model Category {
   id         String    @id @default(cuid())
-  name       String    @db.VarChar(30)
   categoryId String    @db.VarChar(70)
-  asset      String    @default("vanilla/missing.webp")
+  name       String    @db.VarChar(30)
+  asset      String    @default("missing.webp")
+  custom     Boolean   @default(false)
   items      Item[]
+  project    Project?  @relation(fields: [projectId], references: [id])
+  projectId  String?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime? @updatedAt
+
+  @@index([projectId])
 }
 
 model Project {
@@ -104,51 +109,52 @@ model Project {
   asset       String        @default("project/default.webp")
   users       ProjectUser[]
   items       Item[]
-  Recipes     Recipes[]
+  recipes     Recipes[]
   activities  Activity[]
+  categories  Category[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime?     @updatedAt
 }
 
 model Recipes {
-  id        String       @id @default(cuid())
-  name      String       @db.VarChar(50)
-  type      RecipeType   @default(SHAPELESS)
-  custom    Boolean      @default(false)
-  items     Ingredient[]
-  Project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime?    @updatedAt
+  id          String       @id @default(cuid())
+  name        String       @db.VarChar(50)
+  type        RecipeType   @default(SHAPELESS)
+  custom      Boolean      @default(false)
+  ingredients Ingredient[]
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime?    @updatedAt
 
   @@index([projectId])
 }
 
 model Ingredient {
-  id        Int      @id @default(autoincrement())
-  slot      String   @db.VarChar(50)
-  count     Int
-  item      Item     @relation(fields: [itemId], references: [id])
-  itemId    String
-  Recipes   Recipes? @relation(fields: [recipesId], references: [id], onDelete: Cascade)
-  recipesId String?
+  id       Int      @id @default(autoincrement())
+  slot     String   @db.VarChar(50)
+  count    Int
+  item     Item     @relation(fields: [itemId], references: [id])
+  itemId   String
+  recipe   Recipes? @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipeId String?
 
   @@index([itemId])
-  @@index([recipesId])
+  @@index([recipeId])
 }
 
 model Activity {
   id        String       @id @default(cuid())
   message   String       @db.VarChar(100)
   asset     String?
-  createdAt DateTime     @default(now())
-  createdBy User?        @relation(fields: [userId], references: [id])
-  userId    String
-  Project   Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId String?
   action    ActivityType @default(INFO)
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  createdBy ProjectUser  @relation(fields: [userId, projectId], references: [userId, projectId])
+  userId    String
+  createdAt DateTime     @default(now())
 
-  @@index([userId])
+  @@index([userId, projectId])
   @@index([projectId])
 }
 
@@ -156,12 +162,13 @@ model ProjectUser {
   role       ProjectRole @default(USER)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime?   @updatedAt
-  Project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId  String
-  UserData   UserData    @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userData   UserData    @relation(fields: [userId], references: [userId], onDelete: Cascade)
   userId     String
   isSelected Boolean     @default(false)
   isInvited  Boolean     @default(false)
+  Activity   Activity[]
 
   @@id([projectId, userId])
   @@index([projectId])

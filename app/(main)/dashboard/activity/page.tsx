@@ -1,6 +1,4 @@
 import React, { Suspense } from 'react';
-import { unstable_getServerSession } from 'next-auth/next';
-import { authOptions } from '@session';
 import Slash from '@icons/Slash';
 import Checked from '@icons/mark/Checked';
 import Unchecked from '@icons/mark/Unchecked';
@@ -9,8 +7,6 @@ import ActivityManager from '@main/dashboard/activity/ActivityManager';
 import LoadingActivity from '@main/dashboard/activity/LoadingActivity';
 
 export default function ActivityPage() {
-    const session = unstable_getServerSession(authOptions);
-
     return (
         <section className={'min-height-view flex flex-col border-b-gold border-b-8 border-solid'}>
             <div className={'py-10 px-[150px] w-full'}>
@@ -42,7 +38,7 @@ export default function ActivityPage() {
                 <hr className={'mb-8'} />
                 <Suspense fallback={<LoadingActivity />}>
                     {/* @ts-ignore */}
-                    <ActivityManager session={session} />
+                    <ActivityManager />
                 </Suspense>
             </div>
         </section>

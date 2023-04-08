@@ -9,8 +9,8 @@ import { randomPlacement } from '@libs/minecraft/crafting/displayed';
 import Trash from '@icons/Common/Trash';
 import Edit from '@icons/Common/Edit';
 import { useRouter } from 'next/navigation';
-import { deleteRecipe } from '@libs/request/client/project/recipe';
-import { ToastContext } from '@components/toast/ToastContainer';
+import { deleteRecipe } from '@libs/request/client/recipe';
+import { ToastContext, ToastStatus } from '@components/toast/ToastContainer';
 import HardelLoader from '@components/loader/HardelLoader';
 import { clx } from '@libs/utils';
 import { RecipeType } from '@prisma/client';
@@ -22,7 +22,7 @@ type Props = {
 };
 
 export default function CraftingTableGUI(props: Props) {
-    const { addPromiseToast } = useContext(ToastContext);
+    const { addToast } = useContext(ToastContext);
     const [recipe, setRecipe] = React.useState(props.data);
     const [loading, setLoading] = React.useState(false);
     const [deleted, setDeleted] = React.useState(false);
@@ -38,22 +38,18 @@ export default function CraftingTableGUI(props: Props) {
 
     const handleDelete = () => {
         setLoading(true);
-        const promise = deleteRecipe(props.data.id)
+        deleteRecipe(props.data.id)
             .then(() => {
                 router.refresh();
+                addToast(ToastStatus.SUCCESS, 'Recipe deleted', 'The recipe has been deleted');
                 setDeleted(true);
+            })
+            .catch((e) => {
+                addToast(ToastStatus.ERROR, 'Recipe deletion failed', e.message);
             })
             .finally(() => {
                 setLoading(false);
             });
-
-        addPromiseToast(
-            promise,
-            'Processing...',
-            'Successfully recipe deleted',
-            'Failed to delete recipe',
-            `The crafting recipe ${recipe.name} has been deleted successfully.`
-        );
     };
 
     return (

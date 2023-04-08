@@ -1,44 +1,52 @@
 'use client';
 
-import fetcher from '@libs/request/client/fetcher';
-import useSWR from 'swr';
-import { Category } from '@prisma/client';
-import { assetUploadItem, upsertVanillaItem } from '@libs/request/client/minecraft/item';
-import { MinecraftItemData } from '@definitions/minecraft';
+import fetcher from '@libs/request/fetcher';
+import useSWR, { mutate } from 'swr';
+import { Category, Item } from '@prisma/client';
+import { ReadableItemData } from '@definitions/minecraft';
 import { useRouter } from 'next/navigation';
 import BaseCreateItem, { SendData } from '@components/drawer/container/item/BaseCreateItem';
+import { assetCustomUploadItem, upsertItem } from '@libs/request/client/item';
+import React from 'react';
 
 type Props = {
     onClose: () => void;
     isCreating: boolean;
-    defaultValues?: Partial<MinecraftItemData>;
+    defaultValues?: Partial<ReadableItemData>;
 };
 
-export default function AdminCreateItem(props: Props) {
-    const { data } = useSWR<Category[]>('/api/minecraft/categories/lite', fetcher);
+export default function UserCreateItem(props: Props) {
+    const { data } = useSWR<Category[]>('/api/categories/lite', fetcher);
     const router = useRouter();
 
     const sendData = async (data: SendData) => {
-        const { name, minecraftId, asset, tags, categories } = data;
-        await assetUploadItem(minecraftId, asset);
-        await upsertVanillaItem(!props.isCreating, name, minecraftId, tags, categories, props.defaultValues?.id).then(() => {
-            router.refresh();
+        upsertItem<Item>(
+            props.isCreating,
+            {
+                name: data.name,
+                minecraftId: data.minecraftId,
+                tag: data.tags,
+                categories: data.categories,
+                custom: true
+            },
+            props.defaultValues?.id
+        ).then((item) => {
+            data.asset && assetCustomUploadItem(item.id, data.asset);
             props.onClose();
+            router.refresh();
+            mutate('/api/items');
         });
     };
 
-    const handleDelete = async () => {
-        if (props.defaultValues?.id) {
-        }
-    };
-
     return (
-        <BaseCreateItem
-            isCreating={props.isCreating}
-            defaultCategory={data}
-            onClose={props.onClose}
-            onSend={(data) => sendData(data)}
-            onDeleted={() => handleDelete()}
-        />
+        <>
+            <BaseCreateItem
+                isCreating={props.isCreating}
+                defaultCategory={data}
+                defaultValues={props.defaultValues}
+                onClose={props.onClose}
+                onSend={(data) => sendData(data)}
+            />
+        </>
     );
 }

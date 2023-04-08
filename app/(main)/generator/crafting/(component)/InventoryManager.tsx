@@ -1,14 +1,15 @@
-import React from 'react';
-import { MinecraftCategoryData } from '@definitions/minecraft';
+import React, { use } from 'react';
 import Inventory from '@main/generator/crafting/(component)/Inventory';
 import { notFound } from 'next/navigation';
+import CategoryRepository from '@repositories/Category';
+import prisma from '@libs/prisma';
 
-type Props = {
-    categories: Promise<Array<MinecraftCategoryData>>;
-};
+async function getCategoryData() {
+    return await new CategoryRepository(prisma.category).findVanilla();
+}
 
-export default async function InventoryManager(props: Props) {
-    const data = await props.categories;
+export default function InventoryManager() {
+    const data = use(getCategoryData());
     if (!(data.length > 0)) {
         notFound();
     }

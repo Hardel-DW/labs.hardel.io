@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Image, { StaticImageData } from 'next/image';
-import Harion from '@images/harion.webp';
+import Harion from '@images/logo/harion.webp';
 import GoldButton from '@components/form/Button/Gold';
 import Search from '@icons/Common/Search';
 

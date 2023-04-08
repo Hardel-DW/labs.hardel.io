@@ -1,12 +1,12 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import sharp from 'sharp';
-import RestHelper from '@libs/request/server/form-checker';
-import { RestErrorType } from '@libs/constant';
+import RestHelper from '@libs/request/rest-helper';
+import { ErrorType } from '@libs/constant';
 import S3 from '@libs/aws/client';
-import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { randomString } from '@libs/utils';
-import { RestRequest } from '@definitions/api';
+import { RestError } from '@definitions/api';
 
 type UploadOptions = {
     filename?: string;
@@ -25,7 +25,7 @@ export default async function uploadAsset(
     destination: string,
     file: formidable.File,
     options?: UploadOptions
-): Promise<RestRequest<AssetUploadOutput>> {
+): Promise<RestError | { url: string }> {
     try {
         if (file && destination) {
             const resizeWidth = options?.width || 64;
@@ -35,17 +35,10 @@ export default async function uploadAsset(
             const fileStream = fs.createReadStream(file.filepath);
             const newImage = await sharp(fileStream.path).resize(resizeWidth, resizeHeight).webp().toBuffer();
             if (!newImage) {
-                return new RestHelper().addError(RestErrorType.InternalServerError, 'The image could not be processed').getResponse();
+                return new RestHelper().sendError(ErrorType.InternalServerError, 'The image could not be processed');
             }
 
             const key = `${destination}/${filename}.webp`;
-            await S3.send(
-                new DeleteObjectCommand({
-                    Bucket: process.env.S3_BUCKET_NAME,
-                    Key: key
-                })
-            );
-
             await S3.send(
                 new PutObjectCommand({
                     Bucket: process.env.S3_BUCKET_NAME,
@@ -54,11 +47,11 @@ export default async function uploadAsset(
                 })
             );
 
-            return new RestHelper().setData({ url: `${process.env.ASSET_PREFIX}/${key}` }).getResponse();
+            return { url: `${process.env.ASSET_PREFIX}/${key}` };
         } else {
-            return new RestHelper().addError(RestErrorType.InternalServerError, 'File or Destination is missing').getResponse();
+            return new RestHelper().sendError(ErrorType.InternalServerError, 'File or Destination is missing');
         }
     } catch (error) {
-        return new RestHelper().addError(RestErrorType.InternalServerError, 'The file was not uploaded').getResponse();
+        return new RestHelper().sendError(ErrorType.InternalServerError, 'The file was not uploaded');
     }
 }

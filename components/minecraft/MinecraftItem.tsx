@@ -1,12 +1,12 @@
 'use client';
 
-import { MinecraftItemData } from '@definitions/minecraft';
+import { ReadableItemData } from '@definitions/minecraft';
 import React, { useContext } from 'react';
 import { TooltipContext } from '@components/minecraft/ItemTooltip/TooltipContext';
 import LoadingImage from '@components/LoadingImage';
 
 type Props = {
-    item: MinecraftItemData;
+    item: ReadableItemData;
     onClick?: () => void;
 };
 
@@ -20,7 +20,7 @@ export default function MinecraftItem(props: Props) {
             onClick={props.onClick}
             className={'w-14 h-14 p-[6px] relative opacity-60 hover:opacity-100 transition ease-in-out cursor-pointer'}
         >
-            <LoadingImage alt={'Minecraft Items'} src={props.item.image} height={64} width={64} className={'w-full h-full pixelated'} />
+            <LoadingImage alt={'Minecraft Items'} src={props.item.asset} height={64} width={64} className={'w-full h-full pixelated'} />
         </span>
     );
 }

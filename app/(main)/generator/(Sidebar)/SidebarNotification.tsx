@@ -1,5 +1,5 @@
-import Harion from '@images/harion.webp';
-import Hardel from '@images/logo.webp';
+import Harion from '@images/logo/harion.webp';
+import Hardel from '@images/logo/logo.webp';
 import NotificationToast from '@components/NotificationToast';
 import WhiteButton from '@components/form/Button/White';
 

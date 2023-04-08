@@ -1,7 +1,4 @@
 'use client';
-import useSWR from 'swr';
-import { ReadablePersonalProjectData } from '@definitions/project';
-import fetcher from '@libs/request/client/fetcher';
 import React, { useMemo, useState } from 'react';
 import DefaultItem from '@images/design/item_placeholder.webp';
 import { leaveProject, updateProject, uploadProjectAsset } from '@libs/request/client/project';
@@ -14,6 +11,7 @@ import { VERSION } from '@libs/constant';
 import CopyField from '@components/form/CopyField';
 import { ProjectRole } from '@prisma/client';
 import RedButton from '@components/form/Button/Red';
+import { ReadableProjectData } from '@definitions/project';
 
 type State = {
     name?: string;
@@ -23,19 +21,18 @@ type State = {
     namespace?: string;
 };
 
-export default function Front() {
-    const { data: project } = useSWR<ReadablePersonalProjectData>('/api/projects/select', fetcher);
+export default function Front({ data }: { data: ReadableProjectData }) {
     const [state, setState] = useState<State>();
 
     const preview = useMemo(() => {
         if (state?.asset) {
             return URL.createObjectURL(state.asset);
-        } else if (project?.asset) {
-            return project.asset;
+        } else if (data.asset) {
+            return data.asset;
         } else {
             return DefaultItem;
         }
-    }, [state?.asset, project?.asset]);
+    }, [state?.asset, data.asset]);
 
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -43,7 +40,7 @@ export default function Front() {
     };
 
     const onSubmit = async (fieldName: string) => {
-        if (!state || !project) {
+        if (!state || !data) {
             return;
         }
 
@@ -53,14 +50,14 @@ export default function Front() {
         if (!field) return;
 
         if (field instanceof File) {
-            await uploadProjectAsset(project.id, field).then(() => {
+            await uploadProjectAsset(data.id, field).then(() => {
                 setState({ ...state, asset: null });
             });
 
             return;
         }
 
-        await updateProject(project.id, { [fieldName]: field }).then(() => {
+        await updateProject(data.id, { [fieldName]: field }).then(() => {
             setState({ ...state, [fieldName]: null });
         });
     };
@@ -69,12 +66,12 @@ export default function Front() {
         <div className={'flex flex-col gap-y-8'}>
             <div className={'rounded-md w-full bg-black/50 border-zinc-600 border'}>
                 <div className={'p-8'}>
-                    <h1 className={'text-2xl text-white'}>Project Identifiant</h1>
+                    <h1 className={'text-2xl text-white'}>Project identifier</h1>
                     <hr />
                     <p className={'text-zinc-400 text-base'}>
                         Its a unique identifier for your project, you can use it to contact the support team if you have any problem.
                     </p>
-                    <CopyField>{project?.id ?? 'Bip Bop I am searching.'}</CopyField>
+                    <CopyField>{data.id ?? 'Bip Bop I am searching.'}</CopyField>
                 </div>
                 <div className={'bg-zinc-900 rounded-b-md px-6 py-4 border-zinc-600 border-t'}>
                     <div className={'flex flex-row justify-between items-center'}>
@@ -83,7 +80,7 @@ export default function Front() {
                 </div>
             </div>
 
-            {[ProjectRole.OWNER, ProjectRole.ADMIN].some((role) => role === project?.role) && (
+            {[ProjectRole.OWNER, ProjectRole.ADMIN].some((role) => role === data.role) && (
                 <>
                     <div className={'rounded-md w-full bg-black/50 border-zinc-600 border'}>
                         <div className={'p-8'}>
@@ -200,7 +197,7 @@ export default function Front() {
                 </>
             )}
 
-            {project && ProjectRole.OWNER !== project?.role && (
+            {data && ProjectRole.OWNER !== data.role && (
                 <div className={'rounded-md w-full bg-black/50 border-red-700 border'}>
                     <div className={'p-8'}>
                         <h1 className={'text-2xl text-white'}>Leave</h1>
@@ -213,11 +210,7 @@ export default function Front() {
                     <div className={'bg-zinc-900 rounded-b-md px-6 py-4 border-zinc-500 border-t'}>
                         <div className={'flex flex-row justify-between items-center'}>
                             <p className={'text-zinc-400 text-base font-bold mb-0'}>This action is irreversible.</p>
-                            {project ? (
-                                <RedButton onClick={async () => await leaveProject(project?.id)}>Leave</RedButton>
-                            ) : (
-                                <RedButton disabled>Loading</RedButton>
-                            )}
+                            <RedButton onClick={async () => await leaveProject(data.id)}>Leave</RedButton>
                         </div>
                     </div>
                 </div>

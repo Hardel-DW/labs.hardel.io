@@ -1,12 +1,12 @@
 'use client';
 
 import AdminPagination from '@components/admin/AdminPagination';
-import { MinecraftItemData } from '@definitions/minecraft';
+import { ReadableItemData } from '@definitions/minecraft';
 import Image from 'next/image';
 import React from 'react';
 import Drawer from '@components/drawer';
 import AdminCreateItem from '@components/drawer/container/item/AdminCreateItem';
-import Harion from '@images/harion.webp';
+import Harion from '@images/logo/harion.webp';
 import FormInput from '@components/form/input';
 import MinecraftItem from '@components/minecraft/MinecraftItem';
 
@@ -15,13 +15,13 @@ const drawers = [
     { title: 'Item Configuration', description: 'Configuration of the item, you can change data or delete it' }
 ];
 
-export default function ItemsManager(props: { data: MinecraftItemData[] }) {
+export default function ItemsManager(props: { data: ReadableItemData[] }) {
     const [isOpened, setIsOpened] = React.useState(false);
-    const [selectedItem, setSelectedItem] = React.useState<Partial<MinecraftItemData>>();
+    const [selectedItem, setSelectedItem] = React.useState<Partial<ReadableItemData>>();
     const [selectedDrawer, setSelectedDrawer] = React.useState(drawers[0]);
     const [isEdit, setIsEdit] = React.useState(false);
 
-    const handleEdit = (item: MinecraftItemData) => {
+    const handleEdit = (item: ReadableItemData) => {
         setIsEdit(true);
         setSelectedDrawer(drawers[1]);
         setSelectedItem(item);
@@ -42,7 +42,7 @@ export default function ItemsManager(props: { data: MinecraftItemData[] }) {
 
     return (
         <AdminPagination data={props.data} filterBy={'name'} title={'Items'} onAdd={() => handleAdd()}>
-            {(items: MinecraftItemData[]) => (
+            {(items: ReadableItemData[]) => (
                 <>
                     <div className={'my-10 flex gap-x-4'}>
                         <div

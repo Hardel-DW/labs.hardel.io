@@ -1,10 +1,9 @@
 import React from 'react';
-import { unstable_getServerSession } from 'next-auth/next';
-import { authOptions } from '@session';
 import Navigation from '@main/dashboard/settings/Navigation';
+import { getSession } from '@libs/session';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-    const session = await unstable_getServerSession(authOptions);
+    const session = await getSession();
 
     return (
         <section className={'min-height-view flex flex-col border-b-gold border-b-8 border-solid'}>

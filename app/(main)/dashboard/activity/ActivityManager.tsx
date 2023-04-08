@@ -1,19 +1,22 @@
 import ActivityContainer from '@main/dashboard/activity/ActivityContainer';
 import { AsyncSessionProps } from '@definitions/next-auth';
-import { getAllActivities } from '@libs/request/server/project/activity/get';
-import { OutputActivities } from '@definitions/project';
+import ActivityRepository from '@repositories/ActivityRepository';
+import prisma from '@libs/prisma';
+import { getSession } from '@libs/session';
+import { notFound } from 'next/navigation';
 
 const getData = async (id?: string) => {
     if (!id) throw new Error('No id provided');
-
-    const response = await getAllActivities(id);
-    if (!response.request.success) throw new Error("Couldn't get data");
-    return response.data as OutputActivities[];
+    return await new ActivityRepository(prisma.activity).getAll(id);
 };
 
 export default async function ActivityManager(props: AsyncSessionProps) {
-    const session = await props.session;
+    const session = await getSession();
     const data = await getData(session?.project?.id);
+
+    if (!session) {
+        notFound();
+    }
 
     return <ActivityContainer data={data} />;
 }

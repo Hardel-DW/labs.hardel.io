@@ -2,6 +2,35 @@ import { SlotData } from '@definitions/minecraft';
 import { Option } from '@components/form/Select/multiple';
 import { RecipeType } from '@prisma/client';
 
+export enum InventoryType {
+    SEARCH = 'search',
+    VANILLA = 'vanilla',
+    CUSTOM = 'modded'
+}
+
+export enum ErrorType {
+    MethodNotAllowed = 'MethodNotAllowed',
+    NotFound = 'Not Found',
+    BadRequest = 'Bad Request',
+    BadParameter = 'Bad Parameter',
+    InternalServerError = 'Internal Server Error',
+    Unauthorized = 'Unauthorized',
+    Forbidden = 'Forbidden'
+}
+
+export enum StatusCode {
+    MethodNotAllowed = 405,
+    NotFound = 404,
+    BadRequest = 400,
+    BadParameter = 400,
+    InternalServerError = 500,
+    Unauthorized = 401,
+    Forbidden = 403,
+    Ok = 200,
+    Created = 201,
+    NoContent = 204
+}
+
 export const recipeTypeToValue = (type: RecipeType): string => {
     switch (type) {
         case RecipeType.SHAPED:
@@ -27,23 +56,7 @@ export const recipeTypeToValue = (type: RecipeType): string => {
     }
 };
 
-export enum InventoryType {
-    SEARCH = 'search',
-    VANILLA = 'vanilla',
-    CUSTOM = 'modded'
-}
-
-export enum RestErrorType {
-    MethodNotAllowed = 'MethodNotAllowed',
-    NotFound = 'Not Found',
-    BadRequest = 'Bad Request',
-    BadParameter = 'Bad Parameter',
-    InternalServerError = 'Internal Server Error',
-    Unauthorized = 'Unauthorized',
-    Forbidden = 'Forbidden'
-}
-
-export const DEFAULT_SLOT_VALUE: SlotData[] = [{ id: 'crafting:result', count: 1 }];
+export const DEFAULT_SLOT_VALUE: SlotData[] = [{ slot: 'crafting:result', count: 1 }];
 
 export const AGO_SINCE = [
     {
@@ -101,4 +114,17 @@ export const ROLES = [
     }
 ];
 
-export const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+export const MONTHS = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December'
+];

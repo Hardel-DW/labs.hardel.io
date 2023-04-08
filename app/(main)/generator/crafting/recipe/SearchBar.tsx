@@ -6,14 +6,17 @@ import { SearchProjectContext } from '@components/context/SearchContext';
 import Switch from '@components/form/Switch';
 import WhiteButton from '@components/form/Button/White';
 import { ToastContext, ToastStatus } from '@components/toast/ToastContainer';
+import { useRouter } from 'next/navigation';
 
 export default function SearchRecipeBar() {
     const { addToast } = useContext(ToastContext);
     const { search, setSearch } = React.useContext(SearchProjectContext);
-    const [checked, setChecked] = React.useState(true);
+    const [checked, setChecked] = React.useState(false);
     const [waiting, setWaiting] = React.useState(false);
+    const router = useRouter();
 
     const handleRefresh = () => {
+        router.refresh();
         setWaiting(true);
 
         setTimeout(() => {
@@ -39,7 +42,7 @@ export default function SearchRecipeBar() {
                     onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
-            <Switch onClick={() => setChecked(!checked)} checked={checked} label={'Animation'} />
+            <Switch onClick={() => setChecked(!checked)} defaultChecked={checked} label={'Animation'} />
         </div>
     );
 }

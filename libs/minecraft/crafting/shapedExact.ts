@@ -1,11 +1,11 @@
-import { MinecraftItemData, RecipeKey, ShapedRecipe, ShapedRecipeLData, SlotData } from '@definitions/minecraft';
+import { ReadableItemData, RecipeKey, ShapedRecipe, ShapedRecipeLData, SlotData } from '@definitions/minecraft';
 import { RecipeType } from '@prisma/client';
 import { recipeTypeToValue } from '@libs/constant';
 
 /**
  * Transforms ingredients and result into a shaped recipe
  * @param {SlotData[]} ingredients
- * @param {MinecraftItemData} result
+ * @param {ReadableItemData} result
  * @param {ShapedRecipe} result
  */
 export const makeShapedExactRecipes = (ingredients: SlotData[], result?: SlotData): ShapedRecipe => {
@@ -61,7 +61,7 @@ const getAllKeys = (ingredients: SlotData[]): ShapedRecipeLData[] => {
 
     for (const ingredient of ingredients) {
         if (ingredient.item) {
-            const slotPosition = parseSlotId(ingredient.id);
+            const slotPosition = parseSlotId(ingredient.slot);
 
             const key = keyList.find((key) => key.item.id === ingredient.item?.id);
             if (key) {

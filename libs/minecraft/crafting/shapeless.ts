@@ -1,11 +1,11 @@
-import { MinecraftItemData, SlotData } from '@definitions/minecraft';
+import { ReadableItemData, SlotData } from '@definitions/minecraft';
 import { RecipeType } from '@prisma/client';
 import { recipeTypeToValue } from '@libs/constant';
 
 /**
  * Transforms ingredients into a shapeless recipe
  * @param {SlotData[]} ingredients
- * @param {MinecraftItemData} result
+ * @param {ReadableItemData} result
  * @param result
  */
 export const makeShapelessRecipes = (ingredients: SlotData[], result?: SlotData) => {

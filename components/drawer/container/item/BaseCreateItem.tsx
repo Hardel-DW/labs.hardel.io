@@ -8,30 +8,29 @@ import WhiteButton from '@components/form/Button/White';
 import { Category } from '@prisma/client';
 import Image from 'next/image';
 import DefaultItem from '@images/design/item_placeholder.webp';
-import RedButton from '@components/form/Button/Red';
-import { MinecraftItemData } from '@definitions/minecraft';
+import { ReadableItemData } from '@definitions/minecraft';
+import SelectItem from '@components/form/Select/item';
 
 type Props = {
     onClose: () => void;
     isCreating: boolean;
-    defaultValues?: Partial<MinecraftItemData>;
+    defaultValues?: Partial<ReadableItemData>;
     defaultCategory?: Category[];
     onSend?: (item: SendData) => void;
-    onDeleted?: (id: string) => void;
 };
 
 export type SendData = {
     id?: string;
     name: string;
     minecraftId: string;
-    asset: File;
+    asset?: File;
     tags: string;
-    categories: number[];
+    categories: string[];
 };
 
 export default function BaseCreateItem(props: Props) {
     const [name, setName] = useState('');
-    const [minecraftId, setMinecraftId] = useState('');
+    const [item, setItem] = useState<Partial<ReadableItemData> | string>();
     const [asset, setAsset] = useState<File>();
     const [tags, setTags] = useState('');
     const [categories, setCategories] = useState<string[]>([]);
@@ -51,48 +50,25 @@ export default function BaseCreateItem(props: Props) {
     }, [props.defaultCategory]);
 
     useEffect(() => {
-        const { name, minecraftId, tag, categories } = props.defaultValues || {};
-        if (name) {
-            setName(name);
-        }
-
-        if (minecraftId) {
-            setMinecraftId(minecraftId);
-        }
-
-        if (tag) {
-            setTags(tag);
-        }
-
-        if (categories) {
-            setCategories(categories.map((category) => category.id.toString()));
-        }
+        setName(props.defaultValues?.name ?? '');
+        setTags(props.defaultValues?.tag ?? '');
+        setCategories(props.defaultValues?.categories?.map((category) => category.id.toString()) ?? []);
+        setItem(props.defaultValues?.minecraftId);
+        setAsset(undefined);
     }, [props.defaultValues]);
 
+    const minecraftId = useMemo(() => {
+        return typeof item === 'string' ? item : item?.minecraftId;
+    }, [item]);
+
     const handleSend = () => {
-        const parsedCategories = categories.map((category) => Number(category));
-        if (!asset) {
+        const id = props.defaultValues?.id;
+        if (!minecraftId) {
             return;
         }
 
-        const sendData: SendData = {
-            id: props.defaultValues?.id,
-            name,
-            minecraftId,
-            asset,
-            tags,
-            categories: parsedCategories
-        };
-
+        const sendData: SendData = { id, name, minecraftId, asset, tags, categories };
         props.onSend?.(sendData);
-    };
-
-    const handleDelete = () => {
-        if (!props.defaultValues?.id) {
-            return;
-        }
-
-        props.onDeleted?.(props.defaultValues?.id);
     };
 
     return (
@@ -108,9 +84,11 @@ export default function BaseCreateItem(props: Props) {
             <div>
                 <div className={'mb-4'}>
                     <p className="text-xl mb-0 font-bold">ID</p>
-                    <small className="text-sm text-gray-400">The ID of the item for minecraft</small>
+                    <small className="text-sm font-normal text-zinc-500">
+                        This is the ID that is used in the game, you can find it in game with F3 + H.
+                    </small>
                 </div>
-                <FormInput type={'text'} placeholder={'ID'} value={minecraftId} onChange={(e) => setMinecraftId(e.target.value)} />
+                <SelectItem value={minecraftId} onChange={(item) => setItem(item)} customValue={true} />
                 <hr />
             </div>
             <div>
@@ -121,7 +99,7 @@ export default function BaseCreateItem(props: Props) {
                     </div>
                     <Image src={displayPreview} alt={''} className={'w-8 h-8'} width={100} height={100} />
                 </div>
-                <FileInput onChange={setAsset} />
+                <FileInput value={asset} onChange={setAsset} />
                 <hr />
             </div>
             <div>
@@ -129,7 +107,7 @@ export default function BaseCreateItem(props: Props) {
                     <p className="text-xl mb-0 font-bold">Categories</p>
                     <small className="text-sm text-gray-400">The categories of the item, you can select multiple</small>
                 </div>
-                <SelectMultiple options={options} values={categories} onChange={setCategories} />
+                <SelectMultiple options={options} values={categories} onChange={setCategories} create />
                 <hr />
             </div>
             <div>
@@ -142,7 +120,6 @@ export default function BaseCreateItem(props: Props) {
             </div>
 
             <div className={'flex justify-end w-full gap-x-2 mt-4'}>
-                {!props.isCreating && <RedButton onClick={() => handleDelete()}>Delete Item</RedButton>}
                 <WhiteButton onClick={() => handleSend()}>{props.isCreating ? 'Create Item' : 'Update Item'}</WhiteButton>
             </div>
         </div>

@@ -13,8 +13,8 @@ export default function CodePreview() {
     const { slots, recipeType } = useContext(CraftingContext);
 
     const recipe = useMemo(() => {
-        const ingredients = slots.filter((slot) => slot.id !== 'crafting:result');
-        const result = slots.find((slot) => slot.id === 'crafting:result');
+        const ingredients = slots.filter((element) => element.slot !== 'crafting:result');
+        const result = slots.find((element) => element.slot === 'crafting:result');
 
         let recipe: Recipe;
         if (recipeType === RecipeType.SHAPELESS) recipe = makeShapelessRecipes(ingredients, result);

@@ -3,9 +3,10 @@ import { Inter } from '@next/font/google';
 import Footer from '@main/Footer';
 import React, { Suspense } from 'react';
 import local from '@next/font/local';
-import Header from '@main/(Header)';
+import Header from '@main/(Header)/Header';
 import LoadingHeader from '@main/(Header)/LoadingHeader';
 import { preloadSession } from '@libs/session';
+import ModalContextProvider from '@components/modal/ModalContext';
 
 const inter = Inter({
     subsets: ['latin']
@@ -35,7 +36,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                         {/* @ts-ignore */}
                         <Header />
                     </Suspense>
-                    <main>{children}</main>
+                    <ModalContextProvider>
+                        <main>{children}</main>
+                    </ModalContextProvider>
                 </div>
                 <Footer />
             </body>

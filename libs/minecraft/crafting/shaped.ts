@@ -6,13 +6,16 @@ import { RecipeType } from '@prisma/client';
 /**
  * Transforms ingredients and result into a shaped recipe
  * @param {SlotData[]} ingredients
- * @param {MinecraftItemData} result
+ * @param {SlotData} result
  * @param result
  */
 export const makeShapedRecipes = (ingredients: SlotData[], result?: SlotData): Recipe => {
     const shaped: ShapedRecipe = { ...makeShapedExactRecipes(ingredients, result) };
 
-    if (shaped.pattern.length === 0 || shaped.pattern.find((patternLine) => patternLine.length !== shaped.pattern[0].length) !== undefined) {
+    if (
+        shaped.pattern.length === 0 ||
+        shaped.pattern.find((patternLine) => patternLine.length !== shaped.pattern[0].length) !== undefined
+    ) {
         throw new Error('Invalid shaped recipe');
     }
 

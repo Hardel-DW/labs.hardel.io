@@ -6,8 +6,11 @@ import TooltipContextProvider from '@components/minecraft/ItemTooltip/TooltipCon
 import DrawerContextProvider from '@main/generator/crafting/(component)/DrawerContext';
 import ItemTooltip from '@components/minecraft/ItemTooltip';
 import DrawerManager from '@main/generator/crafting/(component)/DrawerManager';
+import { getSession, preloadCraftData } from '@libs/session';
 
 export default async function GeneratorLayout({ children }: { children: React.ReactNode }) {
+    getSession().then((session) => session?.project?.id && preloadCraftData(session.project.id));
+
     return (
         <ToastContainer>
             <ProjectContextProvider>

@@ -1,29 +1,33 @@
+'use client';
+
 import React, { useId } from 'react';
-import styles from './styles.module.scss';
 
 type Props = {
     onClick?: (e: React.MouseEvent<HTMLInputElement, MouseEvent>) => void;
     disabled?: boolean;
     label?: string;
-    checked?: boolean;
+    isChecked?: boolean;
+    defaultChecked?: boolean;
 };
 
 export default function Switch(props: Props) {
     const id = useId();
 
     return (
-        <label className={styles.toggle} htmlFor={id}>
-            <input type="checkbox" disabled={props.disabled} defaultChecked={props.checked} className={styles.toggleInput} id={id} onClick={props.onClick} />
-            <span className={styles.toggleTrack}>
-                <span className={styles.toggleIndicator}>
-                    <span className={styles.checkMark}>
-                        <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
-                            <path d="M9.86 18a1 1 0 01-.73-.32l-4.86-5.17a1.001 1.001 0 011.46-1.37l4.12 4.39 8.41-9.2a1 1 0 111.48 1.34l-9.14 10a1 1 0 01-.73.33h-.01z"></path>
-                        </svg>
-                    </span>
-                </span>
-            </span>
-            <p className={'mb-0 ml-4 font-bold'}>{props.label}</p>
+        <label htmlFor={id} className="inline-flex relative items-center cursor-pointer">
+            <div className="relative flex items-center">
+                <input
+                    type="checkbox"
+                    disabled={props.disabled}
+                    defaultChecked={props.defaultChecked}
+                    checked={props.isChecked}
+                    className="sr-only peer"
+                    id={id}
+                    onClick={props.onClick}
+                />
+                <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#674c13] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold"></div>
+                <span className="ml-3 text-sm font-bold">{props.label}</span>
+            </div>
         </label>
     );
 }

@@ -1,10 +1,10 @@
 'use client';
 import Image from 'next/image';
 import DefaultProject from '@images/design/item_placeholder.webp';
-import { ReadablePersonalProjectData } from '@definitions/project';
 import { selectProject } from '@libs/request/client/project';
+import { ReadableProjectData } from '@definitions/project';
 
-export default function ProjectDropdownItem(props: { project: ReadablePersonalProjectData }) {
+export default function ProjectDropdownItem(props: { project: ReadableProjectData }) {
     const handleSelect = async () => await selectProject(props.project.id);
 
     return (
@@ -15,7 +15,9 @@ export default function ProjectDropdownItem(props: { project: ReadablePersonalPr
                 </div>
                 <div className="pl-3">
                     <span className="block text-sm text-white">{props.project.name}</span>
-                    <span className="block text-sm font-medium break-keep text-gray-500 truncate max-w-[12rem]">{props.project.description}</span>
+                    <span className="block text-sm font-medium break-keep text-gray-500 truncate max-w-[12rem]">
+                        {props.project.description}
+                    </span>
                 </div>
             </div>
         </div>

@@ -1,120 +1,172 @@
-import { Category, Item, PrismaClient } from '@prisma/client';
-import { MinecraftItemData } from '@definitions/minecraft';
-import { RequiredBy, SafeNumber } from '@definitions/global';
+import { ActivityType, Category, Item, PrismaClient } from '@prisma/client';
+import { ReadableItemData } from '@definitions/minecraft';
+import CategoryRepository from '@repositories/Category';
+import { createActivity } from '@repositories/ActivityRepository';
+import { z } from 'zod';
+import prisma from '@libs/prisma';
+import { removeNamespace } from '@libs/utils';
+import RecipeRepository from '@repositories/Recipe';
 
 export type ItemWithCategories = Item & { categories?: Category[] };
-export type ItemCreateData = Omit<Item, 'id'> & { categories?: { connect: { id: string }[] } };
-export type ItemUpsertData = RequiredBy<Partial<Item & { categories: string[] }>, 'name' | 'asset' | 'minecraftId'>;
+
+export type CreateItemModel = z.infer<typeof CreateItemModel>;
+export const CreateItemModel = z.object({
+    minecraftId: z.string().min(1).max(80),
+    name: z.string().min(1).max(80),
+    custom: z.boolean(),
+    tag: z.string().optional(),
+    categories: z.array(z.string()).optional()
+});
+
+export type UpdateItemModel = z.infer<typeof UpdateItemModel>;
+export const UpdateItemModel = z.object({
+    minecraftId: z.string().min(1).max(80).optional(),
+    name: z.string().min(1).max(80).optional(),
+    custom: z.boolean().optional(),
+    tag: z.string().optional(),
+    categories: z.array(z.string()).optional()
+});
 
 export default class ItemRepository {
     constructor(private readonly prisma: PrismaClient['item']) {}
 
-    async findAll(categories?: boolean) {
-        return await this.prisma.findMany({
-            include: { categories: categories }
-        });
-    }
-
-    async findPaginated(limit?: SafeNumber, page?: SafeNumber, categories?: boolean) {
-        return await this.prisma.findMany({
+    async findAll(categories?: boolean, custom?: boolean) {
+        const items = await this.prisma.findMany({
             include: { categories: categories },
-            take: limit ? Number(limit) : undefined,
-            skip: page && limit ? (Number(page) + 1) * Number(limit) : 0
+            where: { custom: custom }
         });
+
+        return this.itemsToReadable(items);
     }
 
-    async findOne(id: string, categories?: boolean) {
-        return await this.prisma.findUnique({
+    async findByProject(projectId: string) {
+        z.string().cuid().parse(projectId);
+
+        const items = await this.prisma.findMany({
             where: {
-                id
+                projectId
             },
-            include: { categories: categories }
+            include: {
+                categories: true
+            }
         });
+
+        return this.itemsToReadable(items);
+    }
+
+    async checkIfItemExists(projectId: string, itemId: string) {
+        z.object({
+            projectId: z.string().cuid(),
+            itemId: z.string().cuid()
+        }).parse({ projectId, itemId });
+
+        const item = await this.prisma.findUniqueOrThrow({
+            where: {
+                id: itemId
+            }
+        });
+
+        return item?.projectId === projectId;
     }
 
     async count() {
-        return await this.prisma.count();
+        return this.prisma.count();
     }
 
-    async create(data: ItemCreateData) {
-        return await this.prisma.create({
-            data
-        });
-    }
+    async create(userId: string, projectId: string, data: CreateItemModel) {
+        z.object({
+            projectId: z.string().cuid(),
+            userId: z.string().cuid()
+        }).parse({ projectId, userId });
+        CreateItemModel.parse(data);
 
-    async update(id: string, data: Partial<Item>) {
-        return await this.prisma.update({
-            where: {
-                id
-            },
-            data
-        });
-    }
-
-    async updateOrInsert(data: ItemUpsertData) {
-        if (data.id) {
-            return await this.prisma.update({
-                where: {
-                    id: data.id
+        createActivity(userId, projectId, '%user% created the recipe ' + data.name, ActivityType.CREATE);
+        return this.prisma.create({
+            data: {
+                ...data,
+                categories: {
+                    connect: data.categories?.map((id) => {
+                        return { id };
+                    })
                 },
-                data: {
-                    ...data,
-                    categories: {
-                        set: data.categories?.map((id) => {
-                            return { id };
-                        })
+                project: {
+                    connect: {
+                        id: projectId
                     }
                 }
-            });
-        } else {
-            return await this.prisma.create({
-                data: {
-                    ...data,
-                    categories: {
-                        connect: data.categories?.map((id) => {
-                            return { id };
-                        })
-                    }
-                }
-            });
-        }
-    }
-
-    async delete(id: string) {
-        return await this.prisma.delete({
-            where: {
-                id
             }
         });
     }
 
-    async deleteAll() {
-        return await this.prisma.deleteMany();
-    }
+    async update(userId: string, projectId: string, itemId: string, data: UpdateItemModel) {
+        z.object({
+            projectId: z.string().cuid(),
+            userId: z.string().cuid(),
+            itemId: z.string().cuid()
+        }).parse({ projectId, userId, itemId });
 
-    itemsToData(items: ItemWithCategories[]): MinecraftItemData[] {
-        return items.map((item) => {
-            return this.itemToData(item);
+        UpdateItemModel.parse(data);
+        createActivity(userId, projectId, '%user% updated the item ' + data.name, ActivityType.INFO);
+        return this.prisma.update({
+            where: {
+                id: itemId
+            },
+            data: {
+                ...data,
+                categories: {
+                    set: data.categories?.map((id) => {
+                        return { id };
+                    })
+                }
+            }
         });
     }
 
-    itemToData(item: ItemWithCategories): MinecraftItemData {
+    async delete(userId: string, projectId: string, itemId: string) {
+        z.object({
+            projectId: z.string().cuid(),
+            userId: z.string().cuid(),
+            itemId: z.string().cuid()
+        }).parse({ projectId, userId, itemId });
+
+        const recipeRepository = await new RecipeRepository(prisma.recipes);
+        const recipes = await recipeRepository.findByItem(itemId);
+
+        if (recipes.length > 0) {
+            await recipeRepository.deleteByItem(itemId);
+        }
+
+        const response = await this.prisma.delete({
+            where: {
+                id: itemId
+            }
+        });
+
+        createActivity(userId, projectId, '%user% deleted the item ' + response.name, ActivityType.DELETE);
+        return response;
+    }
+
+    itemsToReadable(items: ItemWithCategories[]): ReadableItemData[] {
+        return items.map((item) => this.itemToReadable(item));
+    }
+
+    itemToReadable(item: ItemWithCategories): ReadableItemData {
+        const asset = item.custom
+            ? `${process.env.ASSET_PREFIX}/project/${item.projectId}/item/${item.id}.webp`
+            : `${process.env.ASSET_PREFIX}/minecraft/items/${removeNamespace(item.minecraftId)}.webp`;
+
+        const atlasPosition: Position2D | undefined =
+            item.assetY !== null && item.assetX !== null ? { x: item.assetX, y: item.assetY } : undefined;
+
         return {
             id: item.id,
             minecraftId: item.minecraftId,
             name: item.name,
-            image: `${process.env.ASSET_PREFIX}/minecraft/items/${item.asset}`,
+            asset: asset,
+            position: atlasPosition,
             custom: item.custom,
             tag: item.tag,
-            categories:
-                item?.categories?.map((category) => {
-                    return {
-                        id: category.id,
-                        name: category.name,
-                        minecraftId: category.categoryId,
-                        asset: `${process.env.ASSET_PREFIX}/minecraft/items/${category.asset}`
-                    };
-                }) ?? []
+            categories: new CategoryRepository(prisma.category).categoriesToReadable(item?.categories ?? [])
         };
     }
 }

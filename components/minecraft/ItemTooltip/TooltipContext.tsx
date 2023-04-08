@@ -1,16 +1,16 @@
 'use client';
 
 import React, { createContext } from 'react';
-import { MinecraftItemData } from '@definitions/minecraft';
+import { ReadableItemData } from '@definitions/minecraft';
 
 type TooltipContextData = {
-    hoveredItem: MinecraftItemData | undefined;
-    setHoveredItem: (item: MinecraftItemData | undefined) => void;
+    hoveredItem: ReadableItemData | undefined;
+    setHoveredItem: (item: ReadableItemData | undefined) => void;
 };
 
 export const TooltipContext = createContext<TooltipContextData>({} as TooltipContextData);
 export default function TooltipContextProvider({ children }: { children: React.ReactNode }) {
-    const [hoveredItem, setHoveredItem] = React.useState<MinecraftItemData>();
+    const [hoveredItem, setHoveredItem] = React.useState<ReadableItemData>();
 
     return <TooltipContext.Provider value={{ hoveredItem, setHoveredItem }}>{children}</TooltipContext.Provider>;
 }

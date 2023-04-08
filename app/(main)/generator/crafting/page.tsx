@@ -1,10 +1,6 @@
 import React, { Suspense } from 'react';
 import Image from 'next/image';
 import Table from '@images/design/minecraft/custom_crafting_table.webp';
-
-import getCategories from '@libs/request/server/minecraft/category/get';
-import { MinecraftCategoryData } from '@definitions/minecraft';
-
 import CraftingOptions from '@main/generator/crafting/(component)/CraftingOptions';
 import CodePreview from '@main/generator/crafting/(component)/CodePreview';
 import InventoryManager from '@main/generator/crafting/(component)/InventoryManager';
@@ -15,18 +11,7 @@ import MinecraftGrid from '@icons/MinecraftGrid';
 import DroppableCraftingTableGUI from '@components/minecraft/gui/crafting/Droppable';
 import InventoryLoading from '@main/generator/crafting/(component)/InventoryLoading';
 
-async function getData() {
-    const categories = await getCategories();
-    if (!categories.request.success) {
-        throw new Error('Failed to get categories');
-    }
-
-    return categories.data as MinecraftCategoryData[];
-}
-
 export default async function Page() {
-    const data = getData();
-
     return (
         <DNDContextProvider>
             <div className={'flex flex-col md:flex-row'}>
@@ -50,15 +35,14 @@ export default async function Page() {
                     <div className={'pr-10 pl-5 my-10'}>
                         <div className={'glassmorphism px-10'}>
                             <Suspense fallback={<InventoryLoading />}>
-                                {/* @ts-ignore */}
-                                <InventoryManager categories={data} />
+                                <InventoryManager />
                             </Suspense>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <Link prefetch={true} href={'/generator/crafting/recipe'}>
+            <Link href={'/generator/crafting/recipe'}>
                 <div
                     className={
                         'fixed z-20 bottom-8 right-8 w-16 h-16 rainbow-border rounded-full hover:scale-90 transition ease-in-out duration-200 cursor-pointer'

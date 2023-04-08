@@ -7,13 +7,11 @@ const prisma = new PrismaClient();
 async function main() {
     const deleteCI = prisma.$queryRaw`DELETE FROM _CategoryToItem`;
     const deleteCategory = prisma.category.deleteMany();
-    const deleteItems = prisma.item.deleteMany({
-        where: {
-            custom: false
-        }
-    });
+    const deleteIngredient = prisma.ingredient.deleteMany();
+    const deleteRecipe = prisma.recipes.deleteMany();
+    const deleteItems = prisma.item.deleteMany();
 
-    await prisma.$transaction([deleteCI, deleteCategory, deleteItems]);
+    await prisma.$transaction([deleteCI, deleteIngredient, deleteRecipe, deleteCategory, deleteItems]);
     console.log('Deleted all data');
 
     await prisma.category.createMany({
@@ -28,9 +26,10 @@ async function main() {
     await prisma.item.createMany({
         data: ITEMS.map((item) => ({
             custom: false,
-            name: item.name,
-            asset: item.asset,
-            minecraftId: item.minecraftId
+            name: item.readable,
+            minecraftId: item.id,
+            assetX: item.positionX,
+            assetY: item.positionY
         }))
     });
     console.log('Created items');

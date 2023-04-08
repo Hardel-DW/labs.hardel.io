@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react';
 import Slash from '@icons/Slash';
-import { getSession } from '@libs/session';
 import ProjectManager from '@main/dashboard/ProjectManager';
 import ButtonProject from '@main/dashboard/ButtonProject';
 import SearchProject from '@main/dashboard/SearchProject';
@@ -8,8 +7,6 @@ import LoadedProject from '@main/dashboard/LoadedProject';
 import SearchContext from '@components/context/SearchContext';
 
 export default function Dashboard() {
-    const session = getSession();
-
     return (
         <section className={'min-height-view flex flex-col border-b-gold border-b-8 border-solid'}>
             <div className={'py-10 px-[150px] w-full'}>
@@ -28,8 +25,8 @@ export default function Dashboard() {
                     </div>
                     <div className={'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'}>
                         <Suspense fallback={Array(5).fill(<LoadedProject />)}>
-                            {/* @ts-ignore */}
-                            <ProjectManager session={session} />
+                            {/* @ts-expect-error Server Components */}
+                            <ProjectManager />
                         </Suspense>
                     </div>
                 </SearchContext>

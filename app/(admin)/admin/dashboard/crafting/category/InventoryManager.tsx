@@ -5,18 +5,18 @@ import MinecraftItem from '@components/minecraft/MinecraftItem';
 import React, { useMemo } from 'react';
 import FormInput from '@components/form/input';
 import WhiteButton from '@components/form/Button/White';
-import { MinecraftCategoryData, MinecraftItemData } from '@definitions/minecraft';
+import { ReadableCategoryData, ReadableItemData } from '@definitions/minecraft';
 import Drawer, { DrawerProps } from '@components/drawer';
 import AdminCreateItem from '@components/drawer/container/item/AdminCreateItem';
 import AdminCategory, { AdminCategoryDefaultValue } from '@components/drawer/container/AdminCategory';
 import AdminAddItem from '@components/drawer/container/AdminAddItem';
 
-type Props = { data: Array<MinecraftCategoryData> };
+type Props = { data: Array<ReadableCategoryData> };
 export default function InventoryManager({ data }: Props) {
     const [search, setSearch] = React.useState('');
     const [selectedCategory, setSelectedCategory] = React.useState<AdminCategoryDefaultValue>();
     const [isOpened, setIsOpened] = React.useState(false);
-    const [selectedItem, setSelectedItem] = React.useState<Partial<MinecraftItemData>>();
+    const [selectedItem, setSelectedItem] = React.useState<Partial<ReadableItemData>>();
     const [selectedDrawer, setSelectedDrawer] = React.useState<string>();
 
     const drawer = useMemo(() => {
@@ -68,7 +68,7 @@ export default function InventoryManager({ data }: Props) {
         return items?.filter((item) => item.name.toLowerCase().includes(search.toLowerCase()));
     }, [data, selectedCategory, search]);
 
-    const handleEditItem = (item: MinecraftItemData) => {
+    const handleEditItem = (item: ReadableItemData) => {
         setSelectedItem(item);
         setSelectedDrawer('edit-item');
         setIsOpened(true);
@@ -91,7 +91,7 @@ export default function InventoryManager({ data }: Props) {
         setIsOpened(true);
     };
 
-    const handleSelectCategory = (category: MinecraftCategoryData) => {
+    const handleSelectCategory = (category: ReadableCategoryData) => {
         if (selectedCategory?.id === category.id) {
             setSelectedCategory(undefined);
             return;
