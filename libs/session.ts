@@ -1,11 +1,11 @@
 import { cache } from 'react';
-import { unstable_getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@session';
 import RecipeRepository from '@repositories/Recipe';
 import prisma from '@libs/prisma';
 
 export const getSession = cache(async () => {
-    return await unstable_getServerSession(authOptions);
+    return await getServerSession(authOptions);
 });
 
 export const preloadSession = () => {

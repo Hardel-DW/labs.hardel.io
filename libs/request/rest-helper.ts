@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { ErrorType } from '@libs/constant';
 import FormValidator from '@libs/request/form-checker';
-import { unstable_getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@session';
 import ProjectRepository from '@repositories/Project';
 
@@ -19,7 +19,7 @@ export default class RestHelper<T> extends FormValidator {
             throw this.sendError(ErrorType.InternalServerError, 'Server error');
         }
 
-        const session = await unstable_getServerSession(this.request, this.response, authOptions);
+        const session = await getServerSession(this.request, this.response, authOptions);
         if (!session) {
             throw this.sendError(ErrorType.Unauthorized, 'User not found');
         }

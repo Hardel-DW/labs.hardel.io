@@ -1,12 +1,11 @@
 import '@styles/global.scss';
-import { Inter } from '@next/font/google';
 import Footer from '@main/Footer';
 import React, { Suspense } from 'react';
-import local from '@next/font/local';
 import Header from '@main/(Header)/Header';
 import LoadingHeader from '@main/(Header)/LoadingHeader';
-import { preloadSession } from '@libs/session';
 import ModalContextProvider from '@components/modal/ModalContext';
+import { Inter } from 'next/font/google';
+import local from 'next/font/local';
 
 const inter = Inter({
     subsets: ['latin']
@@ -23,8 +22,6 @@ const minecraft = local({
 });
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-    preloadSession();
-
     return (
         <html lang="en">
             <head>

@@ -1,6 +1,6 @@
 import '@styles/global.scss';
-import { Inter } from '@next/font/google';
-import local from '@next/font/local';
+import { Inter } from 'next/font/google';
+import local from 'next/font/local';
 import React from 'react';
 import Sidebar from '@admin/admin/Sidebar';
 import Footer from '@admin/admin/Footer';
