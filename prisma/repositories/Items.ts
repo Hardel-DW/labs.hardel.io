@@ -1,11 +1,10 @@
+import { z } from 'zod';
 import { ActivityType, Category, Item, PrismaClient } from '@prisma/client';
-import { ReadableItemData } from '@definitions/minecraft';
+import { removeNamespace } from '@/libs/utils';
+import { ReadableItemData } from '@/types/minecraft';
+import RecipeRepository from '@repositories/Recipe';
 import CategoryRepository from '@repositories/Category';
 import { createActivity } from '@repositories/ActivityRepository';
-import { z } from 'zod';
-import prisma from '@libs/prisma';
-import { removeNamespace } from '@libs/utils';
-import RecipeRepository from '@repositories/Recipe';
 
 export type ItemWithCategories = Item & { categories?: Category[] };
 

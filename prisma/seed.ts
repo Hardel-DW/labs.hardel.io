@@ -5,13 +5,12 @@ import { ITEMS } from '../resources/items';
 
 const prisma = new PrismaClient();
 async function main() {
-    const deleteCI = prisma.$queryRaw`DELETE FROM _CategoryToItem`;
     const deleteCategory = prisma.category.deleteMany();
     const deleteIngredient = prisma.ingredient.deleteMany();
     const deleteRecipe = prisma.recipes.deleteMany();
     const deleteItems = prisma.item.deleteMany();
 
-    await prisma.$transaction([deleteCI, deleteIngredient, deleteRecipe, deleteCategory, deleteItems]);
+    await prisma.$transaction([deleteIngredient, deleteRecipe, deleteCategory, deleteItems]);
     console.log('Deleted all data');
 
     await prisma.category.createMany({

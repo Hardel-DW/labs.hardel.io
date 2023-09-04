@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.text-gradient {
+    @apply text-transparent bg-clip-text;
+}
+
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+.pixelated {
+    image-rendering: pixelated;
+}
+
+.animate-pulse-void {
+    animation: pulse-void 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-void {
+    0%,
+    100% {
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}

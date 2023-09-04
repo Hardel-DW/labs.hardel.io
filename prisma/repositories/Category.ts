@@ -1,8 +1,8 @@
-import { ActivityType, Category, Item, PrismaClient } from '@prisma/client';
-import { ReadableCategoryData } from '@definitions/minecraft';
-import ItemRepository from '@repositories/Items';
 import { z } from 'zod';
-import prisma from '@libs/prisma';
+import prisma from '@/libs/prisma';
+import { ActivityType, Category, Item, PrismaClient } from '@prisma/client';
+import { ReadableCategoryData } from '@/types/minecraft';
+import ItemRepository from '@repositories/Items';
 import { createActivity } from '@repositories/ActivityRepository';
 
 type CategoryWithItems = Category & { items?: Item[] };

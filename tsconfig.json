@@ -14,26 +14,18 @@
         "isolatedModules": true,
         "jsx": "preserve",
         "incremental": true,
-        "baseUrl": "./",
-        "paths": {
-            "@definitions/*": ["types/*"],
-            "@images/*": ["public/images/*"],
-            "@api/*": ["pages/api/*"],
-            "@components/*": ["components/*"],
-            "@repositories/*": ["prisma/repositories/*"],
-            "@icons/*": ["components/icons/*"],
-            "@pages/*": ["pages/*"],
-            "@main/*": ["app/(main)/*"],
-            "@admin/*": ["app/(admin)/*"],
-            "@styles/*": ["styles/*"],
-            "@libs/*": ["libs/*"],
-            "@session": ["pages/api/auth/[...nextauth]"]
-        },
         "plugins": [
             {
                 "name": "next"
             }
-        ]
+        ],
+        "baseUrl": "./",
+        "paths": {
+            "@/*": ["src/*"],
+            "@images/*": ["public/images/*"],
+            "@icons/*": ["public/icons/*"],
+            "@repositories/*": ["prisma/repositories/*"]
+        }
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
     "exclude": ["node_modules"]

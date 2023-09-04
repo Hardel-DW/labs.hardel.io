@@ -1,9 +1,9 @@
+import { z } from 'zod';
+import prisma from '@/libs/prisma';
 import { ActivityType, Ingredient, Item, PrismaClient, Recipes, RecipeType } from '@prisma/client';
-import { ReadableRecipeData, SlotData } from '@definitions/minecraft';
+import { ReadableRecipeData, SlotData } from '@/types/minecraft';
 import ItemRepository from '@repositories/Items';
 import { createActivity } from '@repositories/ActivityRepository';
-import { z } from 'zod';
-import prisma from '@libs/prisma';
 
 type CreateIngredientData = { slot: string; count: number; itemId: string };
 type RecipeData = Recipes & {

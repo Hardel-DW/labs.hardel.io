@@ -1,24 +1,12 @@
-import {
-    Activity,
-    ActivityType,
-    Category,
-    Item,
-    PrismaClient,
-    Project,
-    ProjectRole,
-    ProjectUser,
-    Recipes,
-    User,
-    UserData
-} from '@prisma/client';
-import { ReadableMemberData, ReadableProjectData } from '@definitions/project';
+import { RequiredBy } from '@/types/global';
+import { Activity, ActivityType, Category, Item, PrismaClient, Project, ProjectUser, Recipes, UserData } from '@prisma/client';
+import { User } from 'next-auth';
+import { z } from 'zod';
+import { ProjectRole, ReadableMemberData, ReadableProjectData } from '@/types/project';
+import ActivityRepository, { createActivity } from './ActivityRepository';
 import ItemRepository from '@repositories/Items';
-import prisma from '@libs/prisma';
-import ActivityRepository, { createActivity } from '@repositories/ActivityRepository';
 import RecipeRepository from '@repositories/Recipe';
 import CategoryRepository from '@repositories/Category';
-import { z } from 'zod';
-import { RequiredBy } from '@definitions/global';
 
 type MemberData = RequiredBy<Partial<ProjectUser>, 'role' | 'createdAt' | 'userId'> & { userData?: Partial<UserData> & { user: User } };
 export type ProjectData = Project & {
@@ -342,7 +330,7 @@ export default class ProjectRepository {
             }
         });
 
-        return project.users.some((user) => user.userId === userId && role.includes(user.role));
+        return project.users.some((user) => user.userId === userId && role.includes(user.role as ProjectRole));
     }
 
     /**
@@ -672,7 +660,7 @@ export default class ProjectRepository {
      */
     memberToReadable(memberData: MemberData): ReadableMemberData {
         return {
-            role: memberData.role,
+            role: memberData.role as ProjectRole,
             joinedAt: memberData.createdAt.getTime(),
             userId: memberData.userId,
             isInvited: memberData?.isInvited,
@@ -709,7 +697,7 @@ export default class ProjectRepository {
             activities: new ActivityRepository(prisma.activity).activitiesToReadable(project?.activities ?? []),
             categories: new CategoryRepository(prisma.category).categoriesToReadable(project?.categories ?? []),
             users: this.membersToReadable(project?.users ?? []),
-            role: selectedUser?.role,
+            role: selectedUser?.role as ProjectRole,
             isOwner: selectedUser && selectedUser?.role === ProjectRole.OWNER,
             isInvited: selectedUser?.isInvited,
             isSelected: selectedUser?.isSelected

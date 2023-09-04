@@ -1,0 +1,91 @@
+main h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+main h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+main h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+main h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+main h5 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+main h6 {
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+main p {
+    font-size: 0.5rem;
+    font-weight: 400;
+    margin-bottom: 1rem;
+}
+
+main a {
+    color: #fff;
+    text-decoration: none;
+}
+
+main small {
+    font-size: 0.75rem;
+    font-weight: lighter;
+    color: #3a3a3a;
+    line-height: 1;
+}
+
+@media (min-width: 768px) {
+    main h1 {
+        font-size: 5rem;
+    }
+    main h2 {
+        font-size: 3.5rem;
+    }
+    main h3 {
+        font-size: 3rem;
+    }
+    main h4 {
+        font-size: 2.5rem;
+    }
+    main h5 {
+        font-size: 2rem;
+    }
+    main h6 {
+        font-size: 1.5rem;
+    }
+    main p {
+        font-size: 1.2rem;
+    }
+}
+
+hr {
+    flex-shrink: 0;
+    border-top: 0 solid rgba(0, 0, 0, 0.08);
+    border-right: 0 solid rgba(0, 0, 0, 0.08);
+    border-left: 0 solid rgba(0, 0, 0, 0.08);
+    height: 0.0625rem;
+    margin: 1rem 0;
+    border-bottom: none;
+    opacity: 0.25;
+    width: 100%;
+    background-color: transparent;
+    background-image: linear-gradient(to right, rgba(0, 117, 255, 0), #fff, rgba(255, 255, 255, 0)) !important;
+}

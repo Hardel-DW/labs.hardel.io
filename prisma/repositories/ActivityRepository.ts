@@ -1,8 +1,8 @@
-import { Activity, ActivityType, PrismaClient, Project, ProjectUser } from '@prisma/client';
-import { OutputActivities, ReadableActivityData } from '@definitions/project';
-import ProjectRepository from '@repositories/Project';
 import { z } from 'zod';
-import prisma from '@libs/prisma';
+import prisma from '@/libs/prisma';
+import { Activity, ActivityType, PrismaClient, Project, ProjectUser } from '@prisma/client';
+import { EActivityType, OutputActivities, ReadableActivityData } from '@/types/project';
+import ProjectRepository from '@repositories/Project';
 
 type ActivityData = Activity & {
     project?: Project | null;
@@ -70,6 +70,7 @@ export default class ActivityRepository {
     activityToReadable(data: ActivityData): ReadableActivityData {
         return {
             ...data,
+            action: data.action as EActivityType,
             projectId: data?.project?.id,
             createdBy: data.createdBy && new ProjectRepository(prisma.project).memberToReadable(data.createdBy),
             asset: data.asset ?? `${process.env.ASSET_PREFIX}/assets/default_activity.webp`,
