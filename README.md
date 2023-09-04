@@ -1,4 +1,4 @@
-# Repository of Labs-Hardel
+# Repository of Labs-Hardel IO
 
 Hardel's lab offers tools that allow the creation of datapacks without any knowledge of programming and datapacks.
 
