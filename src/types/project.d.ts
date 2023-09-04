@@ -1,10 +1,11 @@
 import { ReadableCategoryData, ReadableItemData, ReadableRecipeData } from '@/types/minecraft';
+import { ActivityType } from '@prisma/client';
 
 type ReadableActivityData = {
     id: string;
     message: string;
     asset?: string;
-    action: EActivityType;
+    action: ActivityType;
     projectId?: string;
     createdAt?: number;
     createdBy?: ReadableMemberData;
@@ -56,15 +57,3 @@ export type OutputActivities = {
         }
     ];
 };
-
-enum ProjectRole {
-    OWNER = 'OWNER',
-    ADMIN = 'ADMIN',
-    USER = 'USER'
-}
-
-enum EActivityType {
-    CREATE = 'CREATE',
-    INFO = 'INFO',
-    DELETE = 'DELETE'
-}

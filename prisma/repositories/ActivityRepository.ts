@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import prisma from '@/libs/prisma';
 import { Activity, ActivityType, PrismaClient, Project, ProjectUser } from '@prisma/client';
-import { EActivityType, OutputActivities, ReadableActivityData } from '@/types/project';
+import { OutputActivities, ReadableActivityData } from '@/types/project';
 import ProjectRepository from '@repositories/Project';
 
 type ActivityData = Activity & {
@@ -70,7 +70,7 @@ export default class ActivityRepository {
     activityToReadable(data: ActivityData): ReadableActivityData {
         return {
             ...data,
-            action: data.action as EActivityType,
+            action: data.action,
             projectId: data?.project?.id,
             createdBy: data.createdBy && new ProjectRepository(prisma.project).memberToReadable(data.createdBy),
             asset: data.asset ?? `${process.env.ASSET_PREFIX}/assets/default_activity.webp`,

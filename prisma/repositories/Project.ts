@@ -1,12 +1,12 @@
 import { RequiredBy } from '@/types/global';
-import { Activity, ActivityType, Category, Item, PrismaClient, Project, ProjectUser, Recipes, UserData } from '@prisma/client';
+import { Activity, ActivityType, Category, Item, PrismaClient, Project, ProjectRole, ProjectUser, Recipes, UserData } from '@prisma/client';
 import { User } from 'next-auth';
 import { z } from 'zod';
-import { ProjectRole, ReadableMemberData, ReadableProjectData } from '@/types/project';
 import ActivityRepository, { createActivity } from './ActivityRepository';
 import ItemRepository from '@repositories/Items';
 import RecipeRepository from '@repositories/Recipe';
 import CategoryRepository from '@repositories/Category';
+import type { ReadableMemberData, ReadableProjectData } from '@/types/project';
 
 type MemberData = RequiredBy<Partial<ProjectUser>, 'role' | 'createdAt' | 'userId'> & { userData?: Partial<UserData> & { user: User } };
 export type ProjectData = Project & {
@@ -697,7 +697,7 @@ export default class ProjectRepository {
             activities: new ActivityRepository(prisma.activity).activitiesToReadable(project?.activities ?? []),
             categories: new CategoryRepository(prisma.category).categoriesToReadable(project?.categories ?? []),
             users: this.membersToReadable(project?.users ?? []),
-            role: selectedUser?.role as ProjectRole,
+            role: selectedUser?.role,
             isOwner: selectedUser && selectedUser?.role === ProjectRole.OWNER,
             isInvited: selectedUser?.isInvited,
             isSelected: selectedUser?.isSelected
