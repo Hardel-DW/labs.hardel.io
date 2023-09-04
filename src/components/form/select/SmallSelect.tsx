@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import useClickOutside from '@libs/hooks/useClickOutside';
-import ArrowBottom from '@icons/Common/ArrowBottom';
-import { Option } from '@/components/form/Select/multiple';
+import useClickOutside from '@/libs/hooks/useClickOutside';
+import { Option } from '@/components/form/select/SelectMultiple';
+import Image from 'next/image';
 
 type Props = {
     onChange?: (values: string | undefined) => void;
@@ -41,7 +41,13 @@ export default function SmallSelect(props: Props) {
                     </div>
                     <div className={'flex'}>
                         <div className={'mx-2 bg-gray-400 w-[1px]'} />
-                        <ArrowBottom className={'fill-white cursor-pointer w-4 h-4'} />
+                        <Image
+                            src="/icons/common/reveal.svg"
+                            alt="reveal"
+                            className="fill-white cursor-pointer w-4 h-4"
+                            height={16}
+                            width={16}
+                        />
                     </div>
                 </div>
             </div>

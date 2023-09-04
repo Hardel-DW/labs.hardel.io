@@ -1,3 +1,4 @@
+/*
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -14,9 +15,9 @@ import { clx, toNamespace } from '@libs/utils';
 type Props = {
     onChange?: (itemId: ReadableItemData | string | undefined) => void;
 
-    /**
+    /!**
      * The minecraft id of the item
-     */
+     *!/
     value?: string;
     customValue?: boolean;
 };
@@ -182,3 +183,4 @@ export default function SelectItem(props: Props) {
         </div>
     );
 }
+*/

@@ -1,9 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import useClickOutside from '@libs/hooks/useClickOutside';
-import Cross from '@icons/Common/Cross';
-import ArrowBottom from '@icons/Common/ArrowBottom';
+import useClickOutside from '@/libs/hooks/useClickOutside';
+import Image from 'next/image';
 
 export type Option = {
     value: string;
@@ -88,7 +87,14 @@ export default function SelectMultiple(props: Props) {
                                 .map((option, index) => (
                                     <div key={index} className={'flex items-center justify-center bg-white/10 rounded-md px-2'}>
                                         <span className={'text-white text-sm'}>{option.shortName ?? option.name}</span>
-                                        <Cross className={'fill-white w-4 h-4 ml-2 cursor-pointer'} onClick={() => handleRemove(option)} />
+                                        <Image
+                                            src={'/icons/common/cross.svg'}
+                                            alt={'cross'}
+                                            className={'fill-white cursor-pointer w-4 h-4 ml-2'}
+                                            onClick={() => handleRemove(option)}
+                                            height={16}
+                                            width={16}
+                                        />
                                     </div>
                                 ))}
                         </div>
@@ -101,9 +107,22 @@ export default function SelectMultiple(props: Props) {
                         />
                     </div>
                     <div className={'flex'}>
-                        <Cross className={'fill-white cursor-pointer w-4 h-4'} onClick={() => handleRemoveAll()} />
+                        <Image
+                            src={'/icons/common/cross.svg'}
+                            alt={'cross'}
+                            className={'fill-white cursor-pointer w-4 h-4'}
+                            onClick={() => handleRemoveAll()}
+                            height={16}
+                            width={16}
+                        />
                         <div className={'mx-2 bg-gray-400 w-[1px]'} />
-                        <ArrowBottom className={'fill-white cursor-pointer w-4 h-4'} />
+                        <Image
+                            src={'/icons/common/reveal.svg'}
+                            alt={'reveal'}
+                            className={'fill-white cursor-pointer w-4 h-4'}
+                            height={16}
+                            width={16}
+                        />
                     </div>
                 </div>
             </div>
