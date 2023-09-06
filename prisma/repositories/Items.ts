@@ -38,6 +38,31 @@ export default class ItemRepository {
         return this.itemsToReadable(items);
     }
 
+    /**
+     * Finds items by minecraft category ID, e.g. minecraft:building_blocks.
+     *
+     * @param {string} categoryId - The category ID to search for.
+     * @returns {Promise<ReadableItemData[]>} - A promise that resolves to an array of formatted minecraft items.
+     */
+    async findByCategory(categoryId: string): Promise<ReadableItemData[]> {
+        z.string().startsWith('minecraft:').parse(categoryId);
+
+        const items = await this.prisma.findMany({
+            where: {
+                categories: {
+                    some: {
+                        categoryId
+                    }
+                }
+            },
+            include: {
+                categories: true
+            }
+        });
+
+        return this.itemsToReadable(items);
+    }
+
     async findByProject(projectId: string) {
         z.string().cuid().parse(projectId);
 
