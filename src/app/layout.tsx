@@ -32,6 +32,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
     return (
         <html lang="en">
+            <head>
+                <meta name="google-site-verification" content="Cfjkkj0GptctyosfkmnX3BO6kR2FX8sfieqs2eOsWo8" />
+                <title>Hardel Labs</title>
+            </head>
             <body
                 className={[
                     'min-h-screen flex flex-col justify-between background-grid',
