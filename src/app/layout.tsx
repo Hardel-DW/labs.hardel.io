@@ -1,8 +1,12 @@
 import '@/styles/global.css';
-import Footer from '@/app/Footer';
-import React from 'react';
+import Footer from '@/components/layout/Footer';
+import React, { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import localFont from 'next/font/local';
+import { getServerSession } from 'next-auth/next';
+import SessionProvider from '@/components/layout/SessionProvider';
+import LoadingHeader from '@/components/layout/header/LoadingHeader';
+import Header from '@/components/layout/header/Header';
 
 export const metadata = {
     title: 'Create Next App',
@@ -23,7 +27,9 @@ const minecraft = localFont({
     variable: '--font-minecraft'
 });
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+    const session = await getServerSession();
+
     return (
         <html lang="en">
             <body
@@ -34,8 +40,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     inter.className
                 ].join(' ')}
             >
-                <main>{children}</main>
-                <Footer />
+                <SessionProvider session={session}>
+                    <Suspense fallback={<LoadingHeader />}>
+                        <Header />
+                    </Suspense>
+                    <main>{children}</main>
+                    <Footer />
+                </SessionProvider>
             </body>
         </html>
     );
