@@ -2,6 +2,7 @@ import { PrismaClient, UserData } from '@prisma/client';
 import { z } from 'zod';
 import ProjectRepository from '@repositories/Project';
 import { ReadableProjectData } from '@/types/project';
+import prisma from '@/libs/prisma';
 
 export default class UserDataRepository {
     constructor(private readonly prisma: PrismaClient['userData']) {}

@@ -6,12 +6,12 @@ import prisma from '@/libs/prisma';
 
 type Params = {
     params: {
-        project: string;
+        identifier: string;
     };
 };
 
 export async function GET(request: NextRequest, { params }: Params) {
-    const project = params.project;
+    const project = params.identifier;
 
     try {
         const response = await new ActivityRepository(prisma.activity).getAll(project);

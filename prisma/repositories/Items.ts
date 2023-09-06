@@ -5,6 +5,7 @@ import { ReadableItemData } from '@/types/minecraft';
 import RecipeRepository from '@repositories/Recipe';
 import CategoryRepository from '@repositories/Category';
 import { createActivity } from '@repositories/ActivityRepository';
+import prisma from '@/libs/prisma';
 
 export type ItemWithCategories = Item & { categories?: Category[] };
 
@@ -33,6 +34,31 @@ export default class ItemRepository {
         const items = await this.prisma.findMany({
             include: { categories: categories },
             where: { custom: custom }
+        });
+
+        return this.itemsToReadable(items);
+    }
+
+    /**
+     * Finds items by minecraft category ID, e.g. minecraft:building_blocks.
+     *
+     * @param {string} categoryId - The category ID to search for.
+     * @returns {Promise<ReadableItemData[]>} - A promise that resolves to an array of formatted minecraft items.
+     */
+    async findByCategory(categoryId: string): Promise<ReadableItemData[]> {
+        z.string().startsWith('minecraft:').parse(categoryId);
+
+        const items = await this.prisma.findMany({
+            where: {
+                categories: {
+                    some: {
+                        categoryId
+                    }
+                }
+            },
+            include: {
+                categories: true
+            }
         });
 
         return this.itemsToReadable(items);
@@ -128,7 +154,7 @@ export default class ItemRepository {
             itemId: z.string().cuid()
         }).parse({ projectId, userId, itemId });
 
-        const recipeRepository = await new RecipeRepository(prisma.recipes);
+        const recipeRepository = new RecipeRepository(prisma.recipes);
         const recipes = await recipeRepository.findByItem(itemId);
 
         if (recipes.length > 0) {
