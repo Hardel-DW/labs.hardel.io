@@ -1,4 +1,6 @@
 import { Session } from 'next-auth';
+import { ReadableProjectData } from '@/types/project';
+import { UserData } from '@prisma/client';
 
 declare module 'next-auth' {
     /**
