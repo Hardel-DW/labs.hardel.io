@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { ErrorType, StatusCode } from '@/libs/constant';
 import { RestErrorHandler } from '@/libs/rest-error-handler';
 import prisma from '@/libs/prisma';
 import CategoryRepository from '@repositories/Category';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const response = await new CategoryRepository(prisma.category).findAll(false, false);
         return NextResponse.json(response);
