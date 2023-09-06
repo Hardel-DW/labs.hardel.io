@@ -7,6 +7,7 @@ import UserDropdown from '@/components/layout/header/UserDropdown';
 import LoginButton from '@/components/layout/header/LoginButton';
 import UserDataRepository from '@repositories/UserData';
 import { ReadableProjectData } from '@/types/project';
+import prisma from '@/libs/prisma';
 
 export default async function Header() {
     const session = await getServerSession(authOptions);

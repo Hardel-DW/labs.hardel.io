@@ -14,7 +14,7 @@
         "push": "prisma db push",
         "format": "prisma format",
         "seed": "prisma db seed",
-        "migrate-dev": "dotenv -e .env. -- npx prisma db push",
+        "migrate-dev": "prisma db push",
         "migrate-prod": "dotenv -e .env.production -- npx prisma db push"
     },
     "dependencies": {

@@ -5,6 +5,7 @@ import { ReadableItemData } from '@/types/minecraft';
 import RecipeRepository from '@repositories/Recipe';
 import CategoryRepository from '@repositories/Category';
 import { createActivity } from '@repositories/ActivityRepository';
+import prisma from '@/libs/prisma';
 
 export type ItemWithCategories = Item & { categories?: Category[] };
 
@@ -153,7 +154,7 @@ export default class ItemRepository {
             itemId: z.string().cuid()
         }).parse({ projectId, userId, itemId });
 
-        const recipeRepository = await new RecipeRepository(prisma.recipes);
+        const recipeRepository = new RecipeRepository(prisma.recipes);
         const recipes = await recipeRepository.findByItem(itemId);
 
         if (recipes.length > 0) {

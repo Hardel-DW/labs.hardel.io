@@ -7,6 +7,7 @@ import ItemRepository from '@repositories/Items';
 import RecipeRepository from '@repositories/Recipe';
 import CategoryRepository from '@repositories/Category';
 import type { ReadableMemberData, ReadableProjectData } from '@/types/project';
+import prisma from '@/libs/prisma';
 
 type MemberData = RequiredBy<Partial<ProjectUser>, 'role' | 'createdAt' | 'userId'> & { userData?: Partial<UserData> & { user: User } };
 export type ProjectData = Project & {
