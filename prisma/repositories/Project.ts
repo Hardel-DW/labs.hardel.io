@@ -63,14 +63,19 @@ export default class ProjectRepository {
 
     /**
      * Get project by id.
-     * @param id
+     * @param projectId
+     * @param userId
      * @param include
      */
-    async findOne(id: string, include?: boolean): Promise<ReadableProjectData> {
-        z.string().cuid().parse(id);
+    async findOne(projectId: string, userId: string, include?: boolean): Promise<ReadableProjectData> {
+        z.string().cuid().parse(projectId);
+        z.string().cuid().parse(userId);
+
+        const hasPermission = await this.checkIfUserIsInProject(projectId, userId);
+        if (!hasPermission) throw new Error('You are not allowed to get this project');
 
         const responses = await this.prisma.findUniqueOrThrow({
-            where: { id },
+            where: { id: projectId },
             include: {
                 items: include,
                 recipes: include,
@@ -85,6 +90,58 @@ export default class ProjectRepository {
         });
 
         return this.projectToReadable(responses);
+    }
+
+    async findByRecipeId(recipeId: string, userId: string): Promise<string> {
+        z.string().cuid().parse(recipeId);
+        z.string().cuid().parse(userId);
+
+        const response = await this.prisma.findFirst({
+            where: {
+                recipes: {
+                    some: {
+                        id: recipeId
+                    }
+                },
+                users: {
+                    some: {
+                        userId
+                    }
+                }
+            },
+            select: {
+                id: true
+            }
+        });
+
+        if (!response) throw new Error('An error occurred while getting the project');
+        return response.id;
+    }
+
+    async findByItemId(itemId: string, userId: string): Promise<string> {
+        z.string().cuid().parse(itemId);
+        z.string().cuid().parse(userId);
+
+        const response = await this.prisma.findFirst({
+            where: {
+                items: {
+                    some: {
+                        id: itemId
+                    }
+                },
+                users: {
+                    some: {
+                        userId
+                    }
+                }
+            },
+            select: {
+                id: true
+            }
+        });
+
+        if (!response) throw new Error('An error occurred while getting the project');
+        return response.id;
     }
 
     /**
@@ -252,7 +309,7 @@ export default class ProjectRepository {
             }
         });
 
-        createActivity(userId, projectId, '%user% created the project %project%', ActivityType.CREATE);
+        createActivity(projectId, userId, '%user% created the project %project%', ActivityType.CREATE);
         return this.projectToReadable({ ...project, asset });
     }
 
@@ -281,7 +338,7 @@ export default class ProjectRepository {
             data
         });
 
-        createActivity(userId, projectId, '%user% updated the project');
+        createActivity(projectId, userId, '%user% updated the project');
         return this.projectToReadable(response);
     }
 
@@ -430,7 +487,7 @@ export default class ProjectRepository {
             }
         });
 
-        createActivity(userId, projectId, '%user% has accepted the invitation', ActivityType.CREATE);
+        createActivity(projectId, userId, '%user% has accepted the invitation', ActivityType.CREATE);
         return this.projectToReadable(response);
     }
 
@@ -461,7 +518,39 @@ export default class ProjectRepository {
             }
         });
 
-        createActivity(userId, projectId, '%user% has left the project', ActivityType.DELETE);
+        createActivity(projectId, userId, '%user% has left the project', ActivityType.DELETE);
+        return this.projectToReadable(response);
+    }
+
+    async denyProject(projectId: string, userId: string): Promise<ReadableProjectData> {
+        z.object({
+            projectId: z.string().cuid(),
+            userId: z.string().cuid()
+        }).parse({ projectId, userId });
+
+        const response = await this.prisma.update({
+            where: {
+                id: projectId,
+                users: {
+                    some: {
+                        userId,
+                        isInvited: true
+                    }
+                }
+            },
+            data: {
+                users: {
+                    delete: {
+                        projectId_userId: {
+                            projectId,
+                            userId
+                        }
+                    }
+                }
+            }
+        });
+
+        createActivity(projectId, userId, '%user% has denied the invitation', ActivityType.DELETE);
         return this.projectToReadable(response);
     }
 
@@ -566,7 +655,7 @@ export default class ProjectRepository {
             }
         });
 
-        createActivity(userId, projectId, '%user% has transferred the ownership of the project to ' + user.name);
+        createActivity(projectId, userId, '%user% has transferred the ownership of the project to ' + user.name);
         return this.projectToReadable(response);
     }
 
@@ -618,16 +707,14 @@ export default class ProjectRepository {
 
     /**
      * Get all members of a project, including the role, email, name, asset, id, if the user is invited and if the user is the owner
+     * @param projectId
      * @param userId
      * @return {Promise<ReadableProjectData>}
      */
-    async getMembersData(userId: string): Promise<ReadableProjectData> {
+    async getMembersData(projectId: string, userId: string): Promise<ReadableProjectData> {
         z.string().cuid().parse(userId);
+        z.string().cuid().parse(projectId);
 
-        const selectedProject = await this.findSelectedProject(userId);
-        if (!selectedProject) throw new Error('No project selected');
-
-        const projectId = selectedProject.id;
         const hasPermission = await this.checkIfUserIsInProject(projectId, userId);
         if (!hasPermission) throw new Error('You are not allowed to get users from this project');
 

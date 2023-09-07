@@ -80,8 +80,8 @@ export default class ActivityRepository {
 }
 
 export const createActivity = (
-    userId: string,
     projectId: string,
+    userId: string,
     message: string,
     action: ActivityType = ActivityType.INFO,
     asset?: string

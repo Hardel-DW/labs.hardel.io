@@ -4,6 +4,7 @@ import { ActivityType, Ingredient, Item, PrismaClient, Recipes, RecipeType } fro
 import { ReadableRecipeData, SlotData } from '@/types/minecraft';
 import ItemRepository from '@repositories/Items';
 import { createActivity } from '@repositories/ActivityRepository';
+import ProjectRepository from '@repositories/Project';
 
 type CreateIngredientData = { slot: string; count: number; itemId: string };
 type RecipeData = Recipes & {
@@ -43,14 +44,24 @@ export default class RecipeRepository {
 
     /**
      * Get the recipe by its id
-     * @param id
+     * @param recipeId
+     * @param userId
      */
-    async findOne(id: string) {
-        z.string().cuid().parse(id);
+    async findOne(recipeId: string, userId: string) {
+        z.string().cuid().parse(recipeId);
+        z.string().cuid().parse(userId);
+
+        const projectRepository = new ProjectRepository(prisma.project);
+
+        const projectId = await projectRepository.findByRecipeId(recipeId, userId);
+        if (!projectId) throw new Error('Project not found');
+
+        const hasPermission = await projectRepository.checkIfUserIsInProject(projectId, userId);
+        if (!hasPermission) throw new Error('You are not allowed to get this project');
 
         const response = await this.prisma.findUniqueOrThrow({
             where: {
-                id
+                id: recipeId
             },
             include: {
                 ingredients: {
@@ -67,9 +78,14 @@ export default class RecipeRepository {
     /**
      * Get all recipes by project id
      * @param projectId
+     * @param userId
      */
-    async findByProject(projectId: string) {
+    async findByProject(projectId: string, userId: string) {
         z.string().cuid().parse(projectId);
+        z.string().cuid().parse(userId);
+
+        const isUserInProject = await new ProjectRepository(prisma.project).checkIfUserIsInProject(projectId, userId);
+        if (!isUserInProject) throw new Error('You are not allowed to get this project');
 
         const response = await this.prisma.findMany({
             where: {
@@ -87,8 +103,16 @@ export default class RecipeRepository {
         return this.recipesToReadable(response);
     }
 
-    async findByItem(itemId: string) {
+    async findByItem(itemId: string, userId: string) {
         z.string().cuid().parse(itemId);
+        z.string().cuid().parse(userId);
+
+        const projectRepository = new ProjectRepository(prisma.project);
+        const projectId = await projectRepository.findByItemId(itemId, userId);
+        if (!projectId) throw new Error('Project not found');
+
+        const hasPermission = await projectRepository.checkIfUserIsInProject(projectId, userId);
+        if (!hasPermission) throw new Error('You are not allowed to get this project');
 
         const response = await this.prisma.findMany({
             where: {
@@ -106,14 +130,14 @@ export default class RecipeRepository {
     /**
      * Create a new recipe
      */
-    async create(userId: string, projectId: string, recipe: CreateRecipeModel) {
+    async create(projectId: string, userId: string, recipe: CreateRecipeModel) {
         z.object({
             userId: z.string().cuid(),
             projectId: z.string().cuid()
         }).parse({ userId, projectId });
         CreateRecipeModel.parse(recipe);
 
-        const recipes = await this.findByProject(projectId);
+        const recipes = await this.findByProject(projectId, userId);
         const recipeExists = recipes.some((r) => {
             return r.ingredients.every((i) => recipe.ingredients.some((ri) => ri.slot === i.slot && ri.item.id === i.item.id));
         });
@@ -141,11 +165,11 @@ export default class RecipeRepository {
             }
         });
 
-        createActivity(userId, projectId, '%user% created the recipe ' + response.name, ActivityType.CREATE);
+        createActivity(projectId, userId, '%user% created the recipe ' + response.name, ActivityType.CREATE);
         return this.recipeToReadable(response);
     }
 
-    async update(userId: string, projectId: string, recipeId: string, data: UpdateRecipeModel) {
+    async update(projectId: string, userId: string, recipeId: string, data: UpdateRecipeModel) {
         z.object({
             userId: z.string().cuid(),
             projectId: z.string().cuid(),
@@ -185,11 +209,11 @@ export default class RecipeRepository {
             }))
         });
 
-        createActivity(userId, projectId, '%user% updated the recipe ' + response.name, ActivityType.INFO);
+        createActivity(projectId, userId, '%user% updated the recipe ' + response.name, ActivityType.INFO);
         return this.recipeToReadable(response);
     }
 
-    async delete(userId: string, projectId: string, id: string) {
+    async delete(projectId: string, userId: string, id: string) {
         z.object({
             userId: z.string().cuid(),
             projectId: z.string().cuid(),
@@ -205,7 +229,7 @@ export default class RecipeRepository {
             }
         });
 
-        createActivity(userId, projectId, '%user% deleted the recipe ' + response.name, ActivityType.DELETE);
+        createActivity(projectId, userId, '%user% deleted the recipe ' + response.name, ActivityType.DELETE);
         return response;
     }
 

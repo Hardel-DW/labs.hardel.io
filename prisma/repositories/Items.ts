@@ -6,6 +6,7 @@ import RecipeRepository from '@repositories/Recipe';
 import CategoryRepository from '@repositories/Category';
 import { createActivity } from '@repositories/ActivityRepository';
 import prisma from '@/libs/prisma';
+import ProjectRepository from '@repositories/Project';
 
 export type ItemWithCategories = Item & { categories?: Category[] };
 
@@ -64,8 +65,12 @@ export default class ItemRepository {
         return this.itemsToReadable(items);
     }
 
-    async findByProject(projectId: string) {
+    async findByProject(projectId: string, userId: string): Promise<ReadableItemData[]> {
         z.string().cuid().parse(projectId);
+        z.string().cuid().parse(userId);
+
+        const hasPermission = await new ProjectRepository(prisma.project).checkIfUserIsInProject(projectId, userId);
+        if (!hasPermission) throw new Error('You are not allowed to get this project');
 
         const items = await this.prisma.findMany({
             where: {
@@ -98,14 +103,14 @@ export default class ItemRepository {
         return this.prisma.count();
     }
 
-    async create(userId: string, projectId: string, data: CreateItemModel) {
+    async create(projectId: string, userId: string, data: CreateItemModel) {
         z.object({
             projectId: z.string().cuid(),
             userId: z.string().cuid()
         }).parse({ projectId, userId });
         CreateItemModel.parse(data);
 
-        createActivity(userId, projectId, '%user% created the recipe ' + data.name, ActivityType.CREATE);
+        createActivity(projectId, userId, '%user% created the recipe ' + data.name, ActivityType.CREATE);
         return this.prisma.create({
             data: {
                 ...data,
@@ -123,7 +128,7 @@ export default class ItemRepository {
         });
     }
 
-    async update(userId: string, projectId: string, itemId: string, data: UpdateItemModel) {
+    async update(projectId: string, userId: string, itemId: string, data: UpdateItemModel) {
         z.object({
             projectId: z.string().cuid(),
             userId: z.string().cuid(),
@@ -131,7 +136,7 @@ export default class ItemRepository {
         }).parse({ projectId, userId, itemId });
 
         UpdateItemModel.parse(data);
-        createActivity(userId, projectId, '%user% updated the item ' + data.name, ActivityType.INFO);
+        createActivity(projectId, userId, '%user% updated the item ' + data.name, ActivityType.INFO);
         return this.prisma.update({
             where: {
                 id: itemId
@@ -147,7 +152,7 @@ export default class ItemRepository {
         });
     }
 
-    async delete(userId: string, projectId: string, itemId: string) {
+    async delete(projectId: string, userId: string, itemId: string) {
         z.object({
             projectId: z.string().cuid(),
             userId: z.string().cuid(),
@@ -155,7 +160,7 @@ export default class ItemRepository {
         }).parse({ projectId, userId, itemId });
 
         const recipeRepository = new RecipeRepository(prisma.recipes);
-        const recipes = await recipeRepository.findByItem(itemId);
+        const recipes = await recipeRepository.findByItem(itemId, userId);
 
         if (recipes.length > 0) {
             await recipeRepository.deleteByItem(itemId);
@@ -167,7 +172,7 @@ export default class ItemRepository {
             }
         });
 
-        createActivity(userId, projectId, '%user% deleted the item ' + response.name, ActivityType.DELETE);
+        createActivity(projectId, userId, '%user% deleted the item ' + response.name, ActivityType.DELETE);
         return response;
     }
 

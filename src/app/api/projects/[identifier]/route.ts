@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/libs/prisma';
 import { RestErrorHandler } from '@/libs/rest-error-handler';
 import { ErrorType, StatusCode } from '@/libs/constant';
-import ItemRepository, { CreateItemModel } from '@repositories/Items';
 import RestUsers from '@/libs/rest-users';
+import ProjectRepository, { UpdateProjectModel } from '@repositories/Project';
 
 type Params = {
     params: {
@@ -14,19 +14,7 @@ type Params = {
 export async function GET(request: NextRequest, { params }: Params) {
     try {
         const userId = await new RestUsers(request).getUser();
-        const response = await new ItemRepository(prisma.item).findByProject(params.identifier, userId);
-        return NextResponse.json(response);
-    } catch (error: any) {
-        return NextResponse.json(new RestErrorHandler(ErrorType.InternalServerError, error), { status: StatusCode.InternalServerError });
-    }
-}
-
-export async function POST(request: NextRequest, { params }: Params) {
-    try {
-        const userId = await new RestUsers(request).getUser();
-        const { data }: { data: CreateItemModel } = await request.json();
-
-        const response = await new ItemRepository(prisma.item).create(params.identifier, userId, data);
+        const response = await new ProjectRepository(prisma.project).findOne(params.identifier, userId);
         return NextResponse.json(response);
     } catch (error: any) {
         return NextResponse.json(new RestErrorHandler(ErrorType.InternalServerError, error), { status: StatusCode.InternalServerError });
@@ -36,9 +24,9 @@ export async function POST(request: NextRequest, { params }: Params) {
 export async function PUT(request: NextRequest, { params }: Params) {
     try {
         const userId = await new RestUsers(request).getUser();
-        const { id, data }: { id: string; data: CreateItemModel } = await request.json();
+        const { data }: { data: UpdateProjectModel } = await request.json();
 
-        const response = await new ItemRepository(prisma.item).update(params.identifier, userId, id, data);
+        const response = await new ProjectRepository(prisma.project).update(params.identifier, userId, data);
         return NextResponse.json(response);
     } catch (error: any) {
         return NextResponse.json(new RestErrorHandler(ErrorType.InternalServerError, error), { status: StatusCode.InternalServerError });
@@ -48,9 +36,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
 export async function DELETE(request: NextRequest, { params }: Params) {
     try {
         const userId = await new RestUsers(request).getUser();
-        const { itemId }: { itemId: string } = await request.json();
-
-        const response = await new ItemRepository(prisma.item).delete(params.identifier, userId, itemId);
+        const response = await new ProjectRepository(prisma.project).delete(params.identifier, userId);
         return NextResponse.json(response);
     } catch (error: any) {
         return NextResponse.json(new RestErrorHandler(ErrorType.InternalServerError, error), { status: StatusCode.InternalServerError });

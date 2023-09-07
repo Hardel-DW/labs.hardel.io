@@ -4,6 +4,7 @@ import { ActivityType, Category, Item, PrismaClient } from '@prisma/client';
 import { ReadableCategoryData } from '@/types/minecraft';
 import ItemRepository from '@repositories/Items';
 import { createActivity } from '@repositories/ActivityRepository';
+import ProjectRepository from '@repositories/Project';
 
 type CategoryWithItems = Category & { items?: Item[] };
 
@@ -70,7 +71,7 @@ export default class CategoryRepository {
         });
     }
 
-    async connectCustomItemToCategory(userId: string, projectId: string, categoryId: string, itemId: string) {
+    async connectCustomItemToCategory(projectId: string, userId: string, categoryId: string, itemId: string) {
         z.object({
             userId: z.string().cuid(),
             projectId: z.string().cuid(),
@@ -90,7 +91,7 @@ export default class CategoryRepository {
             }
         });
 
-        createActivity(userId, projectId, '%user% connected the item ' + item.name + ' to the category ' + categoryId, ActivityType.CREATE);
+        createActivity(projectId, userId, '%user% connected the item ' + item.name + ' to the category ' + categoryId, ActivityType.CREATE);
         return this.prisma.update({
             where: {
                 id: categoryId
@@ -122,8 +123,12 @@ export default class CategoryRepository {
         return this.categoriesToReadable(categories);
     }
 
-    async findByProject(projectId: string, items: boolean = true) {
+    async findByProject(projectId: string, userId: string, items: boolean = true) {
         z.string().cuid().parse(projectId);
+        z.string().cuid().parse(userId);
+
+        const hasPermission = await new ProjectRepository(prisma.project).checkIfUserIsInProject(projectId, userId);
+        if (!hasPermission) throw new Error('You are not allowed to get this project');
 
         const response = await this.prisma.findMany({
             where: {
@@ -148,7 +153,7 @@ export default class CategoryRepository {
         return this.prisma.count();
     }
 
-    async create(userId: string, projectId: string, data: CreateCategoryModel) {
+    async create(projectId: string, userId: string, data: CreateCategoryModel) {
         z.object({
             userId: z.string().cuid(),
             projectId: z.string().cuid()
@@ -160,7 +165,7 @@ export default class CategoryRepository {
         if (!itemId) throw new Error('Missing minecraftId');
         const assetUrl = (itemId.startsWith('minecraft:') ? itemId.replace('minecraft:', '') : itemId) + '.webp';
 
-        createActivity(userId, projectId, '%user% created the category ' + data.name, ActivityType.CREATE);
+        createActivity(projectId, userId, '%user% created the category ' + data.name, ActivityType.CREATE);
         return this.prisma.create({
             data: {
                 ...data,
@@ -169,7 +174,7 @@ export default class CategoryRepository {
         });
     }
 
-    async update(userId: string, projectId: string, categoryId: string, data: Partial<UpdateCategoryModel>) {
+    async update(projectId: string, userId: string, categoryId: string, data: Partial<UpdateCategoryModel>) {
         z.object({
             userId: z.string().cuid(),
             projectId: z.string().cuid(),
@@ -182,7 +187,7 @@ export default class CategoryRepository {
         if (!itemId) throw new Error('Missing minecraftId');
         const assetUrl = (itemId.startsWith('minecraft:') ? itemId.replace('minecraft:', '') : itemId) + '.webp';
 
-        createActivity(userId, projectId, '%user% update the category ' + data.name, ActivityType.INFO);
+        createActivity(projectId, userId, '%user% update the category ' + data.name, ActivityType.INFO);
         return this.prisma.update({
             where: {
                 id: categoryId
@@ -194,7 +199,7 @@ export default class CategoryRepository {
         });
     }
 
-    async delete(userId: string, projectId: string, categoryId: string) {
+    async delete(projectId: string, userId: string, categoryId: string) {
         z.object({
             userId: z.string().cuid(),
             projectId: z.string().cuid(),
@@ -207,7 +212,7 @@ export default class CategoryRepository {
             }
         });
 
-        createActivity(userId, projectId, '%user% deleted the category ' + data.name, ActivityType.DELETE);
+        createActivity(projectId, userId, '%user% deleted the category ' + data.name, ActivityType.DELETE);
         return data;
     }
 
