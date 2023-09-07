@@ -16,7 +16,7 @@ type Params = {
 export async function POST(request: NextRequest, { params }: Params) {
     const data = await request.formData();
     const files = data.get('images') as File | null;
-    const itemId = data.get('fileName') as string | null;
+    const itemId = data.get('item') as string | null;
     const destination = `project/${params.identifier}/item`;
 
     if (!files || !itemId) {

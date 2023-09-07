@@ -11,7 +11,7 @@ type Params = {
     };
 };
 
-export async function PUT(request: NextRequest, { params }: Params) {
+export async function PATCH(request: NextRequest, { params }: Params) {
     try {
         const userId = await new RestUsers(request).getUser();
         const { email }: { email: string } = await request.json();

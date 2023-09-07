@@ -33,18 +33,6 @@ export async function POST(request: NextRequest, { params }: Params) {
     }
 }
 
-export async function PUT(request: NextRequest, { params }: Params) {
-    try {
-        const userId = await new RestUsers(request).getUser();
-        const { id, data }: { id: string; data: CreateRecipeModel } = await request.json();
-
-        const response = await new RecipeRepository(prisma.recipes).update(params.identifier, userId, id, data);
-        return NextResponse.json(response);
-    } catch (error: any) {
-        return NextResponse.json(new RestErrorHandler(ErrorType.InternalServerError, error), { status: StatusCode.InternalServerError });
-    }
-}
-
 export async function DELETE(request: NextRequest, { params }: Params) {
     try {
         const userId = await new RestUsers(request).getUser();

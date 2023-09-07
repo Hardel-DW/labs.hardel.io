@@ -12,7 +12,7 @@ type Params = {
     };
 };
 
-export async function PUT(request: NextRequest, { params }: Params) {
+export async function PATCH(request: NextRequest, { params }: Params) {
     try {
         const userId = await new RestUsers(request).getUser();
         const response = await new ProjectRepository(prisma.project).removeUserInProject(params.identifier, userId, params.user);

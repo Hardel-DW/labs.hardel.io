@@ -12,7 +12,7 @@ type Params = {
         user: string;
     };
 };
-export async function PUT(request: NextRequest, { params }: Params) {
+export async function PATCH(request: NextRequest, { params }: Params) {
     try {
         const userId = await new RestUsers(request).getUser();
         const { role }: { role: ProjectRole } = await request.json();
