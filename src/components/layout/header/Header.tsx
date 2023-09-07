@@ -8,6 +8,7 @@ import LoginButton from '@/components/layout/header/LoginButton';
 import UserDataRepository from '@repositories/UserData';
 import { ReadableProjectData } from '@/types/project';
 import prisma from '@/libs/prisma';
+import MobileDropdown from '@/components/layout/header/MobileDropdown';
 
 export default async function Header() {
     const session = await getServerSession(authOptions);
@@ -22,7 +23,10 @@ export default async function Header() {
     }
 
     return (
-        <nav className="bg-black/10 relative z-20 backdrop-blur-sm px-4 py-2.5 min-h-[70px] flex items-center">
+        <nav
+            className="bg-black/10 absolute z-20 backdrop-blur-sm px-4 py-2.5 min-h-[70px] items-center"
+            style={{ width: 'calc(100dvw - (100dvw - 100%))' }}
+        >
             <div className="w-full flex flex-wrap justify-between items-center">
                 <div className={'flex gap-x-2 items-center'}>
                     <Link href={'/'} className="flex items-center hover:text-white">
@@ -34,7 +38,7 @@ export default async function Header() {
                         <SelectedProject session={session} projects={projects} />
                     ) : (
                         <div className="justify-between items-center w-full md:flex md:w-auto md:order-1">
-                            <ul className="flex flex-col text-white font-semibold md:flex-row md:space-x-4 md:mt-0 md:text-[14px]">
+                            <ul className="hidden md:flex flex-col text-white font-semibold md:flex-row md:space-x-4 md:mt-0 md:text-[14px]">
                                 <li>
                                     <Link href={'/'} className="block py-2 pl-3 text-white md:bg-transparent md:p-0">
                                         Home
@@ -70,19 +74,35 @@ export default async function Header() {
                     )}
                 </div>
 
-                <div className="flex items-center md:order-2">
-                    <div className="relative mr-4">
-                        <input
-                            type="text"
-                            className="bg-black text-sm border border-solid border-zinc-700 rounded-xl px-4 py-1 text-white placeholder-gray-400 focus:outline-none focus:border-gold"
-                            placeholder="Search a command"
-                        />
-                        <div className="absolute top-0 right-0 mr-3 h-full flex items-center">
-                            <Image src="/icons/common/search.svg" className="w-4 h-4 fill-white" alt="Search" width={16} height={16} />
-                        </div>
+                <div className="hidden m:flex items-center md:order-2">
+                    <div className="relative mr-4 w-8 h-8">
+                        <Image src="/icons/common/search.svg" className="h-full w-full fill-white" alt="Search" width={32} height={32} />
                     </div>
                     {session?.user ? <UserDropdown session={session} /> : <LoginButton />}
                 </div>
+            </div>
+
+            <div className="md:hidden w-full">
+                <MobileDropdown>
+                    <Link href={'/'} className="block py-2 pl-3 text-white md:bg-transparent md:p-0">
+                        Home
+                    </Link>
+                    <Link href={'/'} className="block py-2 pl-3 text-gray-400 md:hover:bg-transparent md:p-0">
+                        Blog
+                    </Link>
+                    <Link href={'/'} className="block py-2 pl-3 text-gray-400 md:hover:bg-transparent md:p-0">
+                        Changelog
+                    </Link>
+                    <Link href={'/generator'} className="block py-2 pl-3 text-gray-400 md:hover:bg-transparent md:p-0">
+                        Generator
+                    </Link>
+                    <Link href={'/'} className="block py-2 pl-3 text-gray-400 md:hover:bg-transparent md:p-0">
+                        Donation
+                    </Link>
+                    <Link href={'/'} className="block py-2 pl-3 text-gray-400 md:hover:bg-transparent md:p-0">
+                        Contact
+                    </Link>
+                </MobileDropdown>
             </div>
         </nav>
     );

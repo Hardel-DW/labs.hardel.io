@@ -1,42 +1,42 @@
 main h1 {
-    font-size: 2.5rem;
+    font-size: 5rem;
     font-weight: 700;
     margin-bottom: 1rem;
 }
 
 main h2 {
-    font-size: 2rem;
+    font-size: 3.5rem;
     font-weight: 700;
     margin-bottom: 1rem;
 }
 
 main h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 3rem;
+    font-weight: 600;
     margin-bottom: 1rem;
 }
 
 main h4 {
-    font-size: 1rem;
-    font-weight: 700;
+    font-size: 2.5rem;
+    font-weight: 500;
     margin-bottom: 1rem;
 }
 
 main h5 {
-    font-size: 0.85rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 500;
     margin-bottom: 1rem;
 }
 
 main h6 {
-    font-size: 0.7rem;
-    font-weight: 700;
+    font-size: 1.5rem;
+    font-weight: 400;
     margin-bottom: 1rem;
 }
 
 main p {
-    font-size: 0.5rem;
-    font-weight: 400;
+    font-size: 1rem;
+    font-weight: 200;
     margin-bottom: 1rem;
 }
 
@@ -50,30 +50,6 @@ main small {
     font-weight: lighter;
     color: #3a3a3a;
     line-height: 1;
-}
-
-@media (min-width: 768px) {
-    main h1 {
-        font-size: 5rem;
-    }
-    main h2 {
-        font-size: 3.5rem;
-    }
-    main h3 {
-        font-size: 3rem;
-    }
-    main h4 {
-        font-size: 2.5rem;
-    }
-    main h5 {
-        font-size: 2rem;
-    }
-    main h6 {
-        font-size: 1.5rem;
-    }
-    main p {
-        font-size: 1.2rem;
-    }
 }
 
 hr {

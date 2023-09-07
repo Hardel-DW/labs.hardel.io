@@ -7,7 +7,7 @@ export default function Skew() {
 
     useEffect(() => {
         const skewCalc = () => {
-            const base = Math.min(Math.max(30 - window.scrollY / 10, -50), 30);
+            const base = Math.min(Math.max(30 - window.scrollY / 10, 0), 30);
             setSkew(base);
         };
 
@@ -17,7 +17,7 @@ export default function Skew() {
 
     return (
         <span
-            className={'absolute -bottom-full left-0 w-full h-full -z-10 bg-black/10'}
+            className={'absolute -bottom-full left-0 w-full h-full -z-10 bg-black/30'}
             style={{
                 transform: `skewY(${skew}deg)`
             }}

@@ -1,11 +1,3 @@
-.min-height-view {
-    min-height: calc(100vh - 70px);
-}
-
-.height-view {
-    height: calc(100vh - 70px);
-}
-
 .glassmorphism {
     background: linear-gradient(151deg, rgba(66, 66, 66, 0.35), rgba(0, 0, 0, 0.45));
     backdrop-filter: blur(8px);
@@ -19,12 +11,12 @@
 
 .background-royal {
     background-image: url('/images/design/hex-transparent.webp'),
-        linear-gradient(263deg, #000 77%, rgba(177, 124, 6, 1) 77%, rgba(190, 146, 47, 1) 78%, rgba(255, 255, 255, 1) 78%);
+    linear-gradient(263deg, #000 77%, rgba(177, 124, 6, 1) 77%, rgba(190, 146, 47, 1) 78%, rgba(255, 255, 255, 1) 78%);
 }
 
 .background-royal-reverse {
     background-image: url('/images/design/hex-transparent.webp'),
-        linear-gradient(107deg, #000 77%, rgba(177, 124, 6, 1) 77%, rgba(190, 146, 47, 1) 78%, rgba(255, 255, 255, 1) 78%);
+    linear-gradient(107deg, #000 77%, rgba(177, 124, 6, 1) 77%, rgba(190, 146, 47, 1) 78%, rgba(255, 255, 255, 1) 78%);
 }
 
 .background-grid {
@@ -64,7 +56,7 @@
     box-shadow: 0 0 6px 2px rgb(134 0 255 / 50%), 2px 1000px 1px #000000 inset;
     border: solid 3px transparent;
     background-image: linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0)),
-        linear-gradient(60deg, #00e39f, #00c1b9, #009cc2, #0075b3, #004e8e, #2c4089, #462f7e, #59166d, #91006d, #c3005c, #ea003e, #ff0000);
+    linear-gradient(60deg, #00e39f, #00c1b9, #009cc2, #0075b3, #004e8e, #2c4089, #462f7e, #59166d, #91006d, #c3005c, #ea003e, #ff0000);
     background-origin: border-box;
     background-clip: content-box, border-box;
     animation: border-move 5s linear alternate infinite;
