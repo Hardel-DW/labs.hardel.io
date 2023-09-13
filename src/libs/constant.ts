@@ -153,3 +153,14 @@ export enum RecipeType {
     STONE_CUTTING = 'stone_cutting',
     SMITHING = 'smithing'
 }
+
+export const VERSIONS = [
+    {
+        value: '1.20',
+        name: 'Minecraft Java: 1.20'
+    },
+    {
+        value: '1.19',
+        name: 'Minecraft Java: 1.19'
+    }
+];
