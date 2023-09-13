@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
 
             if (token.id) {
                 token.userData = await new UserDataRepository(prisma.userData).getByUserId(token.id);
-                token.project = await new ProjectRepository(prisma.project).sessionProject(token.id);
+                token.project = await new ProjectRepository(prisma.project).sessionProject(token.userData.id);
             }
 
             return token;
