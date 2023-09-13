@@ -1,9 +1,7 @@
 import React from 'react';
 import Skew from '@/components/Skew';
 import HighlightDiamonds from '@/components/HighlightDiamonds';
-import GoldButton from '@/components/form/button/GoldButton';
-import RainbowButton from '@/components/form/button/RainbowButton';
-import WhiteButton from '@/components/form/button/WhiteButton';
+import Button from '@/components/form/Button';
 
 export default function Home() {
     return (
@@ -19,9 +17,9 @@ export default function Home() {
                     languages.
                 </p>
                 <div className={'my-8 flex gap-x-10 gap-y-4 flex-wrap justify-center'}>
-                    <GoldButton>Donation</GoldButton>
-                    <RainbowButton>Try Now</RainbowButton>
-                    <WhiteButton>Learn More</WhiteButton>
+                    <Button variant="gold">Donation</Button>
+                    <Button variant="rainbow">Try Now</Button>
+                    <Button variant="white">Learn More</Button>
                 </div>
                 <HighlightDiamonds />
                 <Skew />
