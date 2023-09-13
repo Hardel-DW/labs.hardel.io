@@ -2,6 +2,9 @@
 const nextConfig = {
     reactStrictMode: true,
     swcMinify: true,
+    experimental: {
+        serverActions: true
+    },
     images: {
         domains: ['hardel.io', 'avatars.githubusercontent.com'],
         remotePatterns: [
