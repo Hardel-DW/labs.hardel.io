@@ -11,7 +11,7 @@ export default function HardelLoader(props: React.HTMLAttributes<HTMLDivElement>
                 props.className
             )}
         >
-            <Image src={'/icons/hardel.svg'} alt={'logo'} height={64} width={64} />
+            <Image src={'/icons/hardel.svg'} alt={'logo'} className="w-full h-full" height={64} width={64} />
         </div>
     );
 }
