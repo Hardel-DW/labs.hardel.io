@@ -1,8 +1,7 @@
-import { getServerSession } from 'next-auth/next';
 import { RestErrorHandler } from '@/libs/rest-error-handler';
 import { ErrorType } from '@/libs/constant';
 import { NextRequest } from 'next/server';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getSession } from '@/libs/session';
 
 export default class RestUsers {
     constructor(private readonly request?: NextRequest) {
@@ -15,7 +14,7 @@ export default class RestUsers {
             throw new RestErrorHandler(ErrorType.InternalServerError, 'Request or response is not defined');
         }
 
-        const session = await getServerSession({ req: this.request, ...authOptions });
+        const session = await getSession();
         if (!session) {
             throw new RestErrorHandler(ErrorType.Unauthorized, 'Session not found');
         }
