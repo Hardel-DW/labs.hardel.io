@@ -1,8 +1,12 @@
 'use client';
 
 import { signIn } from 'next-auth/react';
-import RainbowButton from '@/components/form/button/RainbowButton';
+import Button from '@/components/form/Button';
 
 export default function LoginButton() {
-    return <RainbowButton onClick={() => signIn()}>Log in</RainbowButton>;
+    return (
+        <Button variant="rainbow" onClick={() => signIn()}>
+            Log in
+        </Button>
+    );
 }

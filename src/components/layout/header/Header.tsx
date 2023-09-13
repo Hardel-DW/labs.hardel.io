@@ -1,30 +1,23 @@
 import Link from 'next/link';
-import { getServerSession } from 'next-auth/next';
 import Image from 'next/image';
 import SelectedProject from '@/components/layout/header/SelectedProject';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import UserDropdown from '@/components/layout/header/UserDropdown';
 import LoginButton from '@/components/layout/header/LoginButton';
 import UserDataRepository from '@repositories/UserData';
 import { ReadableProjectData } from '@/types/project';
 import prisma from '@/libs/prisma';
 import MobileDropdown from '@/components/layout/header/MobileDropdown';
+import { getSession } from '@/libs/session';
 
 export default async function Header() {
-    const session = await getServerSession(authOptions);
-
-    let projects: ReadableProjectData[] = [];
-    if (session?.userData?.userId) {
-        try {
-            projects = await new UserDataRepository(prisma.userData).findProjectsByUserId(session.userData.userId);
-        } catch (error) {
-            throw new Error("Users found but can't find their projects");
-        }
-    }
+    const session = await getSession();
+    const projects: ReadableProjectData[] = session?.userData
+        ? await new UserDataRepository(prisma.userData).findProjectsByUserId(session.userData.id)
+        : [];
 
     return (
         <nav
-            className="bg-black/10 absolute z-20 backdrop-blur-sm px-4 py-2.5 min-h-[70px] items-center"
+            className="bg-black/10 absolute z-20 backdrop-blur-sm px-4 py-2.5 items-center"
             style={{ width: 'calc(100dvw - (100dvw - 100%))' }}
         >
             <div className="w-full flex flex-wrap justify-between items-center">

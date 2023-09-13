@@ -3,7 +3,11 @@ import Image from 'next/image';
 
 export default function LoadingHeader() {
     return (
-        <nav className="bg-black/10 relative z-20 backdrop-blur-sm px-4 py-2.5 min-h-[70px] flex items-center">
+        <nav
+            className="bg-black/10 absolute z-20 backdrop-blur-sm px-4 py-2.5 items-center"
+            style={{ width: 'calc(100dvw - (100dvw - 100%))' }}
+        >
+            {' '}
             <div className="w-full flex flex-wrap justify-between items-center">
                 <div className={'flex gap-x-2 items-center'}>
                     <Link href={'/'} className="flex items-center fill-white hover:fill-gold">

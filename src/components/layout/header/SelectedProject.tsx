@@ -8,7 +8,7 @@ import { clx } from '@/libs/utils';
 import UseClickOutside from '@/libs/hooks/useClickOutside';
 import DashboardLink from '@/components/layout/header/DashboardLink';
 import ProjectDropdownItem from '@/components/layout/header/ProjectDropdownItem';
-import FormInput from '@/components/form/FileInput';
+import FormInput from '@/components/form/FormInput';
 import { ReadableProjectData } from '@/types/project';
 
 type Props = {
@@ -41,12 +41,20 @@ export default function SelectedProject({ projects, session }: Props) {
                     width={32}
                     height={32}
                 />
-                <span className={'text-zinc-300 text-lg font-bold ml-2'}>{session?.project?.name ?? 'No project selected'}</span>
-                <Image src="/icons/common/expand.svg" className="h-[25px] fill-zinc-300 mt-[3px]" alt="Reveal" width={25} height={25} />
+                <span className={'text-zinc-300 text-lg font-bold ml-2 hidden md:block'}>
+                    {session?.project?.name ?? 'No project selected'}
+                </span>
+                <Image
+                    src="/icons/common/expand.svg"
+                    className="h-[25px] fill-zinc-300 mt-[3px] hidden md:block"
+                    alt="Reveal"
+                    width={25}
+                    height={25}
+                />
             </div>
-            <Image src="/icons/slash.svg" alt="Slash" height={40} width={40} />
-            <div className={'flex gap-x-2'}>
-                <DashboardLink href={'/dashboard'}>Overview</DashboardLink>
+            <Image src="/icons/slash.svg" alt="Slash" className="hidden md:block" height={40} width={40} />
+            <div className={'gap-x-2 hidden md:flex'}>
+                <DashboardLink href={'/dashboard/overview'}>Overview</DashboardLink>
                 {session?.project?.id && (
                     <>
                         <DashboardLink href={'/dashboard/teams'}>Teams</DashboardLink>
@@ -60,7 +68,7 @@ export default function SelectedProject({ projects, session }: Props) {
                 <div
                     ref={ref}
                     className={clx(
-                        'bg-black/90 border border-zinc-700 absolute top-[72px] left-[120px] z-[100] text-base list-none rounded-xl',
+                        'bg-black/90 border border-zinc-700 absolute top-[72px] left-6 md:left-[120px] z-[100] text-base list-none rounded-xl',
                         isOpen ? 'block' : 'hidden'
                     )}
                 >
