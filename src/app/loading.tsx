@@ -3,7 +3,7 @@ import HardelLoader from '@/components/HardelLoader';
 
 export default function Loading() {
     return (
-        <div className={'height-view w-full flex justify-center items-center'}>
+        <div className={'h-screen w-full flex justify-center items-center'}>
             <HardelLoader />
         </div>
     );
