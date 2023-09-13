@@ -15,7 +15,11 @@ export const randomString = (length: number): string =>
  * @param {string} str - The input string to remove special characters from.
  * @returns {string} - The input string with special characters removed.
  */
-export const removeSpecialCharacters = (str: string): string => str.toLowerCase().replace(/[^a-z_\s]/gi, '');
+export const removeSpecialCharacters = (str: string): string =>
+    str
+        .toLowerCase()
+        .replace(/[^a-z_]/gi, '')
+        .trim();
 
 /**
  * Concatenates non-empty strings from the given arguments.
