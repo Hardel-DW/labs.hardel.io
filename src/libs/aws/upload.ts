@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import S3 from '@/libs/aws/client';
 import { randomString } from '@/libs/utils';
 import { ErrorType } from '@/libs/constant';
@@ -17,10 +17,9 @@ type UploadOptions = {
  * @param {string} destination - The destination where the asset will be uploaded.
  * @param {File} file - The file to be uploaded.
  * @param {UploadOptions} [options] - Optional upload options.
- * @return {Promise<RestErrorHandler>} - Returns an object with the URL of the uploaded asset, or a RestHelper object if there was an error.
  * @throws {RestErrorHandler} - Throws a RestHelper object if there was an error during the upload process.
  */
-export default async function uploadAsset(destination: string, file: File, options?: UploadOptions): Promise<RestErrorHandler> {
+export default async function uploadAsset(destination: string, file: File, options?: UploadOptions): Promise<string | RestErrorHandler> {
     try {
         if (!file) {
             return new RestErrorHandler(ErrorType.BadRequest, 'No file was uploaded');
@@ -51,8 +50,21 @@ export default async function uploadAsset(destination: string, file: File, optio
             })
         );
 
-        return { url: `${process.env.ASSET_PREFIX}/${key}` };
+        return `${process.env.ASSET_PREFIX}/${key}`;
     } catch (error) {
         return new RestErrorHandler(ErrorType.InternalServerError, 'The file was not uploaded');
+    }
+}
+
+export async function deleteAsset(key: string) {
+    try {
+        await S3.send(
+            new DeleteObjectCommand({
+                Bucket: process.env.S3_BUCKET_NAME,
+                Key: key
+            })
+        );
+    } catch (error) {
+        return new RestErrorHandler(ErrorType.InternalServerError, 'The file was not deleted');
     }
 }
