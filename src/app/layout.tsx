@@ -1,12 +1,13 @@
 import '@/styles/global.css';
+import 'react-toastify/dist/ReactToastify.css';
 import Footer from '@/components/layout/Footer';
 import React, { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import localFont from 'next/font/local';
-import { getServerSession } from 'next-auth/next';
-import SessionProvider from '@/components/layout/SessionProvider';
 import LoadingHeader from '@/components/layout/header/LoadingHeader';
 import Header from '@/components/layout/header/Header';
+import { preloadSession } from '@/libs/session';
+import { ToastContainer } from 'react-toastify';
 
 export const metadata = {
     title: 'Create Next App',
@@ -14,7 +15,8 @@ export const metadata = {
 };
 
 const inter = Inter({
-    subsets: ['latin']
+    subsets: ['latin'],
+    weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900']
 });
 
 const seven = localFont({
@@ -28,7 +30,7 @@ const minecraft = localFont({
 });
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-    const session = await getServerSession();
+    preloadSession();
 
     return (
         <html lang="en">
@@ -44,13 +46,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     inter.className
                 ].join(' ')}
             >
-                <SessionProvider session={session}>
-                    <Suspense fallback={<LoadingHeader />}>
-                        <Header />
-                    </Suspense>
-                    <main>{children}</main>
-                    <Footer />
-                </SessionProvider>
+                <Suspense fallback={<LoadingHeader />}>
+                    <Header />
+                </Suspense>
+                <ToastContainer position="bottom-right" theme="dark" />
+                <main className={'min-h-[100dvh] flex flex-col mt-20'}>{children}</main>
+                <Footer />
             </body>
         </html>
     );
