@@ -1,12 +1,12 @@
 import { z } from 'zod';
 import prisma from '@/libs/prisma';
-import { Activity, ActivityType, PrismaClient, Project, ProjectUser } from '@prisma/client';
+import { Activity, ActivityType, PrismaClient, Project } from '@prisma/client';
 import { OutputActivities, ReadableActivityData } from '@/types/project';
-import ProjectRepository from '@repositories/Project';
+import { User } from 'next-auth';
 
 type ActivityData = Activity & {
     project?: Project | null;
-    createdBy?: ProjectUser;
+    createdBy?: User;
 };
 
 export default class ActivityRepository {
@@ -22,7 +22,7 @@ export default class ActivityRepository {
         }).parse({ projectId, userId, message, action, asset });
 
         return this.prisma.create({
-            data: { message, userId, projectId, action, asset }
+            data: { message, createdById: userId, projectId, action, asset }
         });
     }
 
@@ -35,11 +35,7 @@ export default class ActivityRepository {
             include: {
                 createdBy: {
                     include: {
-                        userData: {
-                            include: {
-                                user: true
-                            }
-                        }
+                        user: true
                     }
                 }
             }
@@ -72,7 +68,7 @@ export default class ActivityRepository {
             ...data,
             action: data.action,
             projectId: data?.project?.id,
-            createdBy: data.createdBy && new ProjectRepository(prisma.project).memberToReadable(data.createdBy),
+            createdBy: data?.createdBy,
             asset: data.asset ?? `${process.env.ASSET_PREFIX}/assets/default_activity.webp`,
             createdAt: data.createdAt.getTime()
         };

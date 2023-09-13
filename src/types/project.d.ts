@@ -1,5 +1,6 @@
 import { ReadableCategoryData, ReadableItemData, ReadableRecipeData } from '@/types/minecraft';
-import { ActivityType } from '@prisma/client';
+import { ActivityType, ProjectRole } from '@prisma/client';
+import { User } from 'next-auth';
 
 type ReadableActivityData = {
     id: string;
@@ -8,7 +9,7 @@ type ReadableActivityData = {
     action: ActivityType;
     projectId?: string;
     createdAt?: number;
-    createdBy?: ReadableMemberData;
+    createdBy?: User;
 };
 
 type ReadableProjectData = {
@@ -23,12 +24,14 @@ type ReadableProjectData = {
     activities: ReadableActivityData[];
     categories: ReadableCategoryData[];
     users: ReadableMemberData[];
-    isSelected?: boolean;
-    isInvited?: boolean;
-    role?: ProjectRole;
-    isOwner?: boolean;
     createdAt?: number;
     updatedAt?: number | null;
+    session?: {
+        role?: ProjectRole;
+        isSelected?: boolean;
+        isInvited?: boolean;
+        isOwner?: boolean;
+    };
 };
 
 type ReadableMemberData = {

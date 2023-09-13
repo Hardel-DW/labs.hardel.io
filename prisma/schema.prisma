@@ -10,6 +10,7 @@ datasource db {
 
 model Account {
   id                String  @id @default(cuid())
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId            String
   type              String
   provider          String
@@ -22,20 +23,16 @@ model Account {
   id_token          String? @db.Text
   session_state     String?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@unique([provider, providerAccountId])
   @@index([userId])
 }
 
 model UserData {
-  id      String        @id @default(cuid())
-  userId  String
-  user    User          @relation(fields: [userId], references: [id])
-  roles   RoleType      @default(USER)
-  project ProjectUser[]
-
-  @@unique([userId])
+  id       String        @id @default(cuid())
+  roles    RoleType      @default(USER)
+  project  ProjectUser[]
+  activity Activity[]
+  user     User?
 }
 
 model Session {
@@ -49,14 +46,17 @@ model Session {
 }
 
 model User {
-  id            String     @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?    @unique
+  email         String?   @unique
   emailVerified DateTime?
-  image         String?    @db.Text
+  image         String?   @db.Text
   accounts      Account[]
   sessions      Session[]
-  userData      UserData[]
+  userData      UserData? @relation(fields: [userId], references: [id])
+  userId        String?   @unique
+
+  @@index([userId])
 }
 
 model VerificationToken {
@@ -78,7 +78,7 @@ model Item {
   project     Project?     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
   categories  Category[]
-  Ingredients Ingredient[]
+  ingredients Ingredient[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime?    @updatedAt
 
@@ -144,17 +144,17 @@ model Ingredient {
 }
 
 model Activity {
-  id        String       @id @default(cuid())
-  message   String       @db.VarChar(100)
-  asset     String?
-  action    ActivityType @default(INFO)
-  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId String
-  createdBy ProjectUser  @relation(fields: [userId, projectId], references: [userId, projectId])
-  userId    String
-  createdAt DateTime     @default(now())
+  id          String       @id @default(cuid())
+  message     String       @db.VarChar(100)
+  asset       String?
+  action      ActivityType @default(INFO)
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  createdBy   UserData     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime     @default(now())
 
-  @@index([userId, projectId])
+  @@index([createdById])
   @@index([projectId])
 }
 
@@ -164,11 +164,10 @@ model ProjectUser {
   updatedAt  DateTime?   @updatedAt
   project    Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId  String
-  userData   UserData    @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userData   UserData    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String
   isSelected Boolean     @default(false)
   isInvited  Boolean     @default(false)
-  Activity   Activity[]
 
   @@id([projectId, userId])
   @@index([projectId])

@@ -237,7 +237,7 @@ export default class RecipeRepository {
         z.string().cuid().parse(itemId);
 
         // Delete all recipes that contain the item
-        // But i don't know why, but it deletes only ingredients, normally it should delete the recipe too.
+        // But don't know why, but it deletes only ingredients, normally it should delete the recipe too.
         await this.prisma.deleteMany({
             where: {
                 ingredients: {

@@ -8,13 +8,17 @@ import RecipeRepository from '@repositories/Recipe';
 import CategoryRepository from '@repositories/Category';
 import type { ReadableMemberData, ReadableProjectData } from '@/types/project';
 import prisma from '@/libs/prisma';
+import uploadAsset from '@/libs/aws/upload';
 
-type MemberData = RequiredBy<Partial<ProjectUser>, 'role' | 'createdAt' | 'userId'> & { userData?: Partial<UserData> & { user: User } };
+type MemberData = RequiredBy<Partial<ProjectUser>, 'role' | 'createdAt' | 'userId'> & {
+    userData?: Partial<UserData> & { user: User | null };
+};
+
 export type ProjectData = Project & {
     categories?: Category[];
     items?: Item[];
     recipes?: Recipes[];
-    activities?: (Activity & { createdBy?: ProjectUser })[];
+    activities?: (Activity & { createdBy?: User })[];
     users?: MemberData[];
 };
 
@@ -24,7 +28,7 @@ export const CreateProjectModel = z.object({
     description: z.string().min(1).max(255),
     version: z.string().min(1).max(10),
     namespace: z.string().min(1).max(50),
-    asset: z.string().min(1).max(255).optional()
+    asset: z.any()
 });
 
 export type UpdateProjectModel = z.infer<typeof UpdateProjectModel>;
@@ -32,34 +36,11 @@ export const UpdateProjectModel = z.object({
     name: z.string().min(1).max(50).optional(),
     description: z.string().min(1).max(255).optional(),
     version: z.string().min(1).max(10).optional(),
-    namespace: z.string().min(1).max(50).optional(),
-    asset: z.string().min(1).max(255).optional()
+    namespace: z.string().min(1).max(50).optional()
 });
 
 export default class ProjectRepository {
     constructor(private readonly prisma: PrismaClient['project']) {}
-
-    /**
-     * Get all projects.
-     * @param include
-     */
-    async findAll(include?: boolean): Promise<ReadableProjectData[]> {
-        const responses = await this.prisma.findMany({
-            include: {
-                items: include,
-                recipes: include,
-                users: include,
-                activities: {
-                    include: {
-                        createdBy: include
-                    }
-                },
-                categories: include
-            }
-        });
-
-        return this.projectsToReadable(responses);
-    }
 
     /**
      * Get project by id.
@@ -186,30 +167,6 @@ export default class ProjectRepository {
     }
 
     /**
-     * Get the selected project of a user.
-     * @param userId
-     */
-    async findSelectedProject(userId: string): Promise<ReadableProjectData> {
-        z.string().cuid().parse(userId);
-
-        const response = await this.prisma.findFirstOrThrow({
-            where: {
-                users: {
-                    some: {
-                        userId,
-                        isSelected: true
-                    }
-                }
-            },
-            include: {
-                users: true
-            }
-        });
-
-        return this.projectToReadable(response);
-    }
-
-    /**
      * This function is used to store project data in the authentication session.
      * @param userId
      */
@@ -245,13 +202,6 @@ export default class ProjectRepository {
         if (!response) return null;
 
         return this.projectToReadable(response, userId);
-    }
-
-    /**
-     * Return the number of projects.
-     */
-    async count() {
-        return this.prisma.count();
     }
 
     /**
@@ -299,18 +249,20 @@ export default class ProjectRepository {
         });
 
         const projectId = project.id;
-        const asset = `project/${projectId}/icon.webp`;
+        const filename = 'icons';
+        const destination = `project/${projectId}/${filename}.webp`;
         await this.prisma.update({
             where: {
                 id: projectId
             },
             data: {
-                asset
+                asset: destination
             }
         });
 
+        await uploadAsset(`project/${projectId}`, data.asset, { width: 64, height: 64, filename: filename });
         createActivity(projectId, userId, '%user% created the project %project%', ActivityType.CREATE);
-        return this.projectToReadable({ ...project, asset });
+        return this.projectToReadable({ ...project, asset: destination });
     }
 
     /**
@@ -326,8 +278,8 @@ export default class ProjectRepository {
             projectId: z.string().cuid(),
             userId: z.string().cuid()
         }).parse({ projectId, userId });
-
         UpdateProjectModel.parse(data);
+
         const hasPermission = await this.hasPermission(projectId, userId, [ProjectRole.ADMIN, ProjectRole.OWNER]);
         if (!hasPermission) throw new Error('You are not allowed to update this project');
 
@@ -340,6 +292,19 @@ export default class ProjectRepository {
 
         createActivity(projectId, userId, '%user% updated the project');
         return this.projectToReadable(response);
+    }
+
+    async updateAsset(projectId: string, userId: string, asset: File) {
+        z.object({
+            projectId: z.string().cuid(),
+            userId: z.string().cuid()
+        }).parse({ projectId, userId });
+
+        const hasPermission = await this.hasPermission(projectId, userId, [ProjectRole.ADMIN, ProjectRole.OWNER]);
+        if (!hasPermission) throw new Error('You are not allowed to update this project');
+
+        await uploadAsset(`project/${projectId}`, asset, { width: 64, height: 64, filename: 'icons' });
+        createActivity(projectId, userId, '%user% updated the project asset', ActivityType.INFO);
     }
 
     /**
@@ -430,9 +395,19 @@ export default class ProjectRepository {
         const hasPermission = await this.hasPermission(projectId, RequestUserId, [ProjectRole.ADMIN, ProjectRole.OWNER]);
         if (!hasPermission) throw new Error('You are not allowed to invite users to this project');
 
-        const user = await prisma.user.findFirstOrThrow({
+        const user = await prisma.userData.findFirstOrThrow({
             where: {
-                email
+                user: {
+                    email
+                }
+            },
+            select: {
+                id: true,
+                user: {
+                    select: {
+                        name: true
+                    }
+                }
             }
         });
 
@@ -451,7 +426,7 @@ export default class ProjectRepository {
             }
         });
 
-        createActivity(RequestUserId, projectId, '%user% has invited a new member, welcome to' + user.name);
+        createActivity(RequestUserId, projectId, '%user% has invited a new member to the project, welcome ' + user.user?.name);
         return this.projectToReadable(response);
     }
 
@@ -496,30 +471,22 @@ export default class ProjectRepository {
      * @param projectId
      * @param userId
      */
-    async leaveProject(projectId: string, userId: string): Promise<ReadableProjectData> {
+    async leaveProject(projectId: string, userId: string) {
         z.object({
             projectId: z.string().cuid(),
             userId: z.string().cuid()
         }).parse({ projectId, userId });
 
-        const response = await this.prisma.update({
+        await prisma.projectUser.delete({
             where: {
-                id: projectId
-            },
-            data: {
-                users: {
-                    delete: {
-                        projectId_userId: {
-                            projectId,
-                            userId
-                        }
-                    }
+                projectId_userId: {
+                    projectId,
+                    userId
                 }
             }
         });
 
         createActivity(projectId, userId, '%user% has left the project', ActivityType.DELETE);
-        return this.projectToReadable(response);
     }
 
     async denyProject(projectId: string, userId: string): Promise<ReadableProjectData> {
@@ -596,67 +563,58 @@ export default class ProjectRepository {
      * @param userId
      * @param email
      */
-    async transferOwnership(projectId: string, userId: string, email: string): Promise<ReadableProjectData> {
+    async transferOwnership(projectId: string, userId: string, email: string) {
         z.object({
             projectId: z.string().cuid(),
             userId: z.string().cuid(),
             email: z.string().email()
         }).parse({ projectId, userId, email });
 
+        const user = await prisma.userData.findFirstOrThrow({
+            where: {
+                user: {
+                    email
+                }
+            },
+            select: {
+                id: true,
+                user: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        });
+
         const hasPermission = await this.hasPermission(projectId, userId, [ProjectRole.OWNER]);
         if (!hasPermission) throw new Error('You are not allowed to transfer ownership of this project');
-
-        const user = await prisma.user.findFirstOrThrow({
-            where: {
-                email
-            }
-        });
-
         if (userId === user.id) throw new Error('You are not allowed to change your own role');
-        await this.prisma.update({
+
+        await prisma.projectUser.update({
             where: {
-                id: projectId
+                projectId_userId: {
+                    projectId,
+                    userId
+                }
             },
             data: {
-                users: {
-                    update: {
-                        where: {
-                            projectId_userId: {
-                                projectId,
-                                userId: userId
-                            }
-                        },
-                        data: {
-                            role: ProjectRole.ADMIN
-                        }
-                    }
-                }
+                role: ProjectRole.ADMIN
             }
         });
 
-        const response = await this.prisma.update({
+        await prisma.projectUser.update({
             where: {
-                id: projectId
+                projectId_userId: {
+                    projectId,
+                    userId: user.id
+                }
             },
             data: {
-                users: {
-                    update: {
-                        where: {
-                            projectId_userId: {
-                                projectId,
-                                userId: user.id
-                            }
-                        },
-                        data: {
-                            role: ProjectRole.OWNER
-                        }
-                    }
-                }
+                role: ProjectRole.OWNER
             }
         });
 
-        createActivity(projectId, userId, '%user% has transferred the ownership of the project to ' + user.name);
-        return this.projectToReadable(response);
+        createActivity(projectId, userId, '%user% has transferred the ownership of the project to ' + user.user?.name);
     }
 
     /**
@@ -754,7 +712,7 @@ export default class ProjectRepository {
             isInvited: memberData?.isInvited,
             isSelected: memberData?.isSelected,
             accountData: memberData.userData && {
-                name: memberData.userData.user.name ?? 'No name',
+                name: memberData?.userData?.user?.name ?? 'No name',
                 email: memberData?.userData?.user?.email ?? 'No email',
                 avatar: memberData?.userData?.user?.image ?? `${process.env.ASSET_PREFIX}/assets/default_avatar.webp`
             }
@@ -785,10 +743,12 @@ export default class ProjectRepository {
             activities: new ActivityRepository(prisma.activity).activitiesToReadable(project?.activities ?? []),
             categories: new CategoryRepository(prisma.category).categoriesToReadable(project?.categories ?? []),
             users: this.membersToReadable(project?.users ?? []),
-            role: selectedUser?.role,
-            isOwner: selectedUser && selectedUser?.role === ProjectRole.OWNER,
-            isInvited: selectedUser?.isInvited,
-            isSelected: selectedUser?.isSelected
+            session: {
+                role: selectedUser?.role,
+                isOwner: selectedUser && selectedUser?.role === ProjectRole.OWNER,
+                isInvited: selectedUser?.isInvited,
+                isSelected: selectedUser?.isSelected
+            }
         };
     }
 }

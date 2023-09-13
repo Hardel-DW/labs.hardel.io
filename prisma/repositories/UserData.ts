@@ -24,8 +24,12 @@ export default class UserDataRepository {
     async getByUserId(userId: string): Promise<UserData> {
         z.string().cuid().parse(userId);
 
-        return this.prisma.findUniqueOrThrow({
-            where: { userId }
+        return this.prisma.findFirstOrThrow({
+            where: {
+                user: {
+                    id: userId
+                }
+            }
         });
     }
 
@@ -41,29 +45,31 @@ export default class UserDataRepository {
         z.string().cuid().parse(userId);
 
         const repository = new ProjectRepository(prisma.project);
-        const response = await this.prisma.findUniqueOrThrow({
-            where: { userId },
+        const response = await this.prisma.findFirstOrThrow({
+            where: {
+                id: userId
+            },
             include: {
                 project: {
                     include: {
                         project: {
                             include: {
-                                recipes: include?.recipes ?? false,
                                 users: {
                                     select: {
                                         role: true,
                                         userId: true,
                                         isInvited: true,
-                                        createdAt: true
+                                        createdAt: true,
+                                        isSelected: true
                                     }
                                 },
+                                recipes: include?.recipes ?? false,
                                 activities: include?.activities ?? false,
                                 categories: include?.categories ?? false
                             }
                         }
                     }
-                },
-                user: true
+                }
             }
         });
 
