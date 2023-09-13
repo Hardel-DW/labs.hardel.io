@@ -17,7 +17,11 @@ export default function ButtonCopy(props: { snippet: string }) {
     }, [pending]);
 
     return (
-        <div className={'w-12 h-12 p-2 hover:bg-black/30 cursor-pointer transition bg-black/10 border border-white/20 rounded-md '}>
+        <div
+            className={
+                'w-12 h-12 p-2 hover:bg-black/30 cursor-pointer transition bg-black/10 border border-white/20 rounded-md flex justify-center items-center'
+            }
+        >
             {pending ? (
                 <Image alt="checked" src={'/icons/common/checked.svg'} width={24} height={24} priority />
             ) : (
